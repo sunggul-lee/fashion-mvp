@@ -9,9 +9,10 @@ const app = express();
 const PORT = 5000;
 
 app.use(cors({
-    origin: '*',
+    origin: ['https://fashion-mvp-h9ea.vercel.app', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 app.use(express.json());
 
@@ -111,5 +112,9 @@ app.post('./api/payments/confirm', async (req, res) => {
 
 
 app.listen(PORT, () => {
-    console.log(`서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`🚀 배포 환경에서 서버가 포트 ${PORT}로 가동 중입니다.`);
+    } else {
+        console.log(`🏠 로컬 서버: http://localhost:${PORT}`);
+    }
 });
