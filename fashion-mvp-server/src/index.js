@@ -8,7 +8,11 @@ dotenv.config();
 const app = express();
 const PORT = 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 console.log("URL 연결확인:",process.env.SUPABASE_URL);
@@ -81,6 +85,27 @@ app.post('/api/orders', async (req, res) => {
         res.json({ success: true, message: "주문이 완료되었습니다!" });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('./api/payments/confirm', async (req, res) => {
+    const { paymentKey, orderId, amount } = req.body;
+    const secretKey = 'test_sk_...';
+
+    const response = await axios.post(
+        'https://api.tosspayments.com/v1/payments/confirm',
+        { paymentKey, orderId, amount },
+        {
+            headers: {
+                Authorization: `Basic ${Buffer.from(secretKey + ':').toString('base64')}`,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+
+    if (response.status === 200) {
+        // 결제 완료! DB에 주문 내역을 최종 저장합니다.
+        res.json({success: true});
     }
 });
 

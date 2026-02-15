@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 function Order({ session }) {
     const [address, setAddress] = useState('');
@@ -64,6 +65,24 @@ function Order({ session }) {
         console.error("주문 에러:", err);
         alert("주문 처리 중 오류가 발생했습니다.");
     }
+
+    const handlePayment = async () => {
+        const clientKey = 'test_ck_D54pQBlueR947LkvJl38WzYpK4rn'; // 테스트 키
+        const tossPayments = await loadTossPayments(clientKey);
+
+        try {
+            await tossPayments.requestPayment('카드', {
+                amount: totalPrice,
+                orderId: `order_${Math.random().toString(36).slice(2, 11)}`,
+                orderName: `${cartItems[0].name} 외 ${cartItems.length - 1}건`,
+                successUrl: `${window.location.origin}/success`,
+                failUrl: `${window.location.origin}/fail`,
+            });
+        } catch (err) {
+            console.error("결제창 호출 에러:", err);
+        }
+    };
+
 
 };
 
