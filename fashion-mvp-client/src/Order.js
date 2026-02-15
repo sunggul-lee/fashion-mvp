@@ -43,7 +43,7 @@ function Order({ session }) {
             items: cartItems,
             total_price: totalPrice,
             address: address
-        });
+        }, { withCredentials: true });
 
         if (response.data.success) {
             const { error: clearError } = await supabase

@@ -6,7 +6,7 @@ function ProductList() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products`)
+    axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products`, { withCredentials: true})
       .then((res) => {
         setProducts(res.data);
       })
