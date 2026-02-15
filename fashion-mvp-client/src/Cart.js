@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
-function Cart({ session }) {
+function Cart({ session, onCartUpdate }) {
     const [cartItems, setCartItems] = useState([]);
     const navigate = useNavigate();
 
@@ -40,7 +40,7 @@ function Cart({ session }) {
     }, [session]);
 
 
-    // 수량 변경 DB 연동 (업데이트 필요)
+    
     const updateQuantity = async (id, amount) => {
         const item = cartItems.find(i => i.id === id);
         if (!item) return;
@@ -63,9 +63,12 @@ function Cart({ session }) {
             setCartItems(updatedCart);
             localStorage.setItem('cart', JSON.stringify(updatedCart));
         }  
+        if (onCartUpdate) {
+            onCartUpdate();
+        }
     };
 
-    // 삭제 DB 연동 (업데이트 필요)
+    
     const removeItem = async (id) => {
         if (session) {
             await supabase
@@ -79,7 +82,10 @@ function Cart({ session }) {
             const updatedCart = cartItems.filter(item => item.id !== id);
             setCartItems(updatedCart);
             localStorage.setItem('cart', JSON.stringify(updatedCart));
-        }        
+        }  
+        if (onCartUpdate) {
+        onCartUpdate();
+        }      
     };
 
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
