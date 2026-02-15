@@ -15,14 +15,19 @@ function App() {
   const [cartCount, setCartCount] = useState(0);
   
   const updateCartCount = useCallback(async () => {
+    if (session === undefined) return;
+
     if (session) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('cart')
         .select('quantity')
         .eq('user_id', session.user.id);
 
-      const total = data?.reduce((acc, item) => acc + (item.quantity || 1), 0);
-      setCartCount(total);
+      if (!error) {
+        const total = data?.reduce((acc, item) => acc + (item.quantity || 1), 0);
+        setCartCount(total);
+      }
+      
     } else {
       const localCart = JSON.parse(localStorage.getItem('cart')) || [];
       const total = localCart.reduce((acc, item) => acc + (item.quantity || 0), 0);
@@ -32,33 +37,45 @@ function App() {
 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        mergeCart(session.user.id, supabase);
-        updateCartCount(session);
-    } else {
-      updateCartCount(null);
-    }
-  });
+    updateCartCount();
+  }, [session, updateCartCount]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (isMounted) {
+          const session = data?.session;
+          setSession(session || null);
+          if (session) {
+            await mergeCart(session.user.id, supabase);
+          }
+        }
+      } catch (err) {
+        if (!err.message.include('aborted')) console.error("Session Init Error:" , err);
+      }
+    };
+
+    initSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      if (_event === 'SIGNED_IN' && session) {
-        console.log("로그인 감지: 장바구니 병합 시작");
-        await mergeCart(session.user.id, supabase);
-        await updateCartCount(session);
-      } else if (session) {
-        updateCartCount(session);
-      } else {
-        setCartCount(0);
-        updateCartCount(null);
-      }
-        
+      if (!isMounted) return;
+
+        setSession(session);
+
+        if (_event === 'SIGNED_IN' && session) {
+          await mergeCart(session.user.id, supabase);
+        }
     });
 
-  return () => authListener.subscription.unsubscribe();
-}, [updateCartCount]);
+  return () => {
+    isMounted = false;
+    authListener.subscription.unsubscribe();
+  };
+}, []);
 
   
   const handleLogout = () => supabase.auth.signOut();
@@ -80,14 +97,22 @@ function App() {
         )}
         </Link>
 
-        {session ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '12px', color: '#666' }}>{session.user.email}</span>
-            <button onClick={handleLogout} style={{ cursor: 'pointer' }}>로그아웃 ({session.user.email})</button>
-          </div>        
-        ) : (
-          <Link to="/login" style={{ textDecoration: 'none', color: '#007bff' }}>로그인</Link>
+        {session && (
+          <Link to="/mypage" style={{ textDecoration: 'none', color: 'black' }}>
+            주문내역
+          </Link>
         )}
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {session ? (
+            <>
+              <span style={{ fontSize: '12px', color: '#666' }}>{session.user.email}</span>
+              <button onClick={handleLogout} style={{ cursor: 'pointer', padding: '5px 10px' }}>로그아웃</button>
+            </>
+          ) : (
+            <Link to="/login" style={{ textDecoration: 'none', color: '#007bff' }}>로그인</Link>
+          )}
+        </div>
       </nav>
 
       <Routes>
