@@ -11,7 +11,7 @@ function ProductDetail({ session, onCartUpdate }) {
     const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
-        axios.get(`http://localhost:5000/api/products/${id}`)
+        axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products/${id}`)
             .then(res => setProduct(res.data))
             .catch(err => console.error("상세 정보 로드 실패:", err));
     }, [id]);

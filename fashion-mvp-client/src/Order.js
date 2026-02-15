@@ -37,7 +37,7 @@ function Order({ session }) {
         if (!session) return alert("로그인이 필요합니다.")
     
     try {
-        const response = await axios.post('http://localhost:5000/api/orders', {
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/orders`, {
             user_id: session.user.id,
             user_email: session.user.email,
             items: cartItems,
