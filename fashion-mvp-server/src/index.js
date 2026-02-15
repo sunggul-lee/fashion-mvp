@@ -8,13 +8,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(express.json());
 app.use(cors({
     origin: ['https://fashion-mvp-h9ea.vercel.app', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-app.use(express.json());
 
 console.log("URL 연결확인:",process.env.SUPABASE_URL);
 
@@ -73,13 +73,13 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
-    const { user_email, items, total_price, address } = req.body;
+    const { user_id, user_email, items, total_price, address } = req.body;
 
     try {
         const { data, error } = await supabase
             .from('orders')
             .insert([
-                { user_email, items, total_price, address }
+                { user_id, user_email, items, total_price, address, created_at: new Date() }
             ]);
 
         if (error) throw error;
