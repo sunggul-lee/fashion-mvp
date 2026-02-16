@@ -25,6 +25,7 @@ const supabase = createClient(
 
 // 로그인 상태 체크 (주문하기 기능 반영완료)
 const authenticateUser = async (req, res, next) => {
+
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: '로그인이 필요합니다.'})
 
@@ -73,20 +74,24 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 app.post('/api/orders', authenticateUser, async (req, res) => {
-    const { user_email, items, total_price, address } = req.body;
+    const { items, total_price, address } = req.body;
     const user = req.user; // authenticateUser가 넣어준 정보
 
     try {
         const { data, error } = await supabase
             .from('orders')
             .insert([
-                { user_id: user, user_email, items, total_price, address, created_at: new Date() }
+                { user_id: user.id, user_email: user.email, items, total_price, address, created_at: new Date() }
             ]);
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase Insert 에러:", error.message);
+            return res.status(400).json({ success: false, message: error.message});
+        }
         res.json({ success: true, message: "주문이 완료되었습니다!" });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("서버 내부 에러:", error);
+        res.status(500).json({ success: false, error: "서버에서 주문을 처리하지 못했습니다." });
     }
 });
 
