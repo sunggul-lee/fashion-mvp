@@ -13,7 +13,7 @@ function Login() {
         const { error } = await supabase.auth.signInWithOtp({
             email,
             options: {
-                emailRedirectTo: window.location.origin
+                emailRedirectTo: process.env.REACT_APP_FRONTEND_URL || window.location.origin
             }
         });
 

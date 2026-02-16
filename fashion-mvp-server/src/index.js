@@ -72,14 +72,15 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-app.post('/api/orders', async (req, res) => {
-    const { user_id, user_email, items, total_price, address } = req.body;
+app.post('/api/orders', authenticateUser, async (req, res) => {
+    const { user_email, items, total_price, address } = req.body;
+    const user = req.user; // authenticateUser가 넣어준 정보
 
     try {
         const { data, error } = await supabase
             .from('orders')
             .insert([
-                { user_id, user_email, items, total_price, address, created_at: new Date() }
+                { user_id: user, user_email, items, total_price, address, created_at: new Date() }
             ]);
 
         if (error) throw error;

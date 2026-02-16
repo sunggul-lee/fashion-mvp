@@ -37,13 +37,17 @@ function Order({ session }) {
         if (!session) return alert("로그인이 필요합니다.")
     
     try {
+        const token = session.access_token;
         const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/orders`, {
-            user_id: session.user.id,
-            user_email: session.user.email,
             items: cartItems,
             total_price: totalPrice,
             address: address
-        }, { withCredentials: true });
+        },{
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            withCredentials: true 
+        });
 
         if (response.data.success) {
             const { error: clearError } = await supabase
@@ -62,8 +66,14 @@ function Order({ session }) {
             alert("주문 실패: " + response.data.message);
         }
     } catch (err) {
-        console.error("주문 에러:", err);
-        alert("주문 처리 중 오류가 발생했습니다.");
+        if (err.response?.status === 401) {
+            alert("인증이 만료되었습니다. 다시 로그인해주세요.");
+            navigate('/login');
+        } else {
+            console.error("주문 에러:", err);
+            alert("주문 처리 중 오류가 발생했습니다.");
+        }
+
     }
 
     /*const handlePayment = async () => {
