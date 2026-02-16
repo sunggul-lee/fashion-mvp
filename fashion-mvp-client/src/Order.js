@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-/*import { loadTossPayments } from '@tosspayments/payment-sdk';*/
+import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 function Order({ session }) {
     const [address, setAddress] = useState('');
@@ -34,59 +34,38 @@ function Order({ session }) {
 
     const handleOrder = async (e) => {
         e.preventDefault();
-        if (!session) return alert("로그인이 필요합니다.")
+        const token = session?.access_token || session?.session?.access_token;
+ 
+        if (!session || !token) return alert("로그인이 필요합니다.")
     
     try {
-        //const token = session.access_token;
-        const token = session?.access_token || session?.session?.access_token;
-        console.log("토큰확인:", token);
+        const { data } = await axios.post(
+            `${process.env.REACT_APP_BACKEND_API_URL}/api/orders`, 
+            {items: cartItems, total_price: totalPrice, address: address},
+            {headers: {Authorization: `Bearer ${token}`}, withCredentials: true }
+        );
 
-        if (!token) {
-            alert("인증 토큰을 찾을 수 없습니다. 다시 로그인 해주세요.");
-            return;
-        }
+        if (data.success) {
+            const orderId = data.orderId || `order_${Math.random().toString(36).slice(2, 11)}`;
+            await handlePayment(orderId);
 
-        console.log("보낼 아이템 목록:", JSON.stringify(cartItems));
-
-        const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/orders`, {
-            items: cartItems,
-            total_price: totalPrice,
-            address: address
-        },{
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            withCredentials: true 
-        });
-
-        if (response.data.success) {
-            const { error: clearError } = await supabase
-                .from('cart')
-                .delete()
-                .eq('user_id', session.user.id);
-            
-            if (clearError) {
-                console.error("DB 카트 비우기 실패:", clearError.message);
-            }
-
-            localStorage.removeItem('cart');
-            alert("주문 성공!");
-            navigate('/');
-        } else {
-            alert("주문 실패: " + response.data.message);
+            //장바구니 비우기 로직 이동 (Success.js)
+            //await supabase.from('cart').delete().eq('user_id', session.user.id);
+            //localStorage.removeItem('cart');
+            //alert("주문 성공!");
+            //navigate('/');
         }
     } catch (err) {
-        if (err.response?.status === 401) {
-            alert("인증이 만료되었습니다. 다시 로그인해주세요.");
-            navigate('/login');
-        } else {
-            console.error("주문 에러:", err);
-            alert("주문 처리 중 오류가 발생했습니다.");
+        const status = err.response?.status;
+        const msg = status === 401 ? "인증이 만료되었습니다." : "주문 처리 중 오류가 발생했습니다.";
+        
+        alert(msg);
+        if (status === 401) navigate('/login');
+        console.error("주문 에러:", err);
         }
+    };
 
-    }
-
-    /*const handlePayment = async () => {
+    const handlePayment = async (orderId) => {
         const clientKey = 'test_ck_D54pQBlueR947LkvJl38WzYpK4rn'; // 테스트 키
         const tossPayments = await loadTossPayments(clientKey);
 
@@ -97,14 +76,12 @@ function Order({ session }) {
                 orderName: `${cartItems[0].name} 외 ${cartItems.length - 1}건`,
                 successUrl: `${window.location.origin}/success`,
                 failUrl: `${window.location.origin}/fail`,
+                customerEmail: session.user.email,
             });
         } catch (err) {
             console.error("결제창 호출 에러:", err);
         }
-    };*/
-
-
-};
+    };
 
     return (
         <div style={{ padding: '20px'}}>
@@ -120,7 +97,7 @@ function Order({ session }) {
             <form onSubmit={handleOrder}>
                 <input
                     type="text"
-                    placeholer="배송지 주소를 입력하세요"
+                    placeholder="배송지 주소를 입력하세요"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     style={{ width: '300px', padding: '10px', marginBottom: '10px' }}
