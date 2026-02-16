@@ -23,7 +23,7 @@ const supabase = createClient(
     process.env.SUPABASE_ANON_KEY
 );
 
-// 로그인 상태 체크 (나중에 주문하기 기능 사용)
+// 로그인 상태 체크 (주문하기 기능 반영완료)
 const authenticateUser = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: '로그인이 필요합니다.'})

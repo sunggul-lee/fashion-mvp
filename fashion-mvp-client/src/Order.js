@@ -37,7 +37,15 @@ function Order({ session }) {
         if (!session) return alert("로그인이 필요합니다.")
     
     try {
-        const token = session.access_token;
+        //const token = session.access_token;
+        const token = session?.access_token || session?.session?.access_token;
+        console.log("토큰확인:", token);
+
+        if (!token) {
+            alert("인증 토큰을 찾을 수 없습니다. 다시 로그인 해주세요.");
+            return;
+        }
+
         const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/orders`, {
             items: cartItems,
             total_price: totalPrice,
