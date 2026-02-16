@@ -66,13 +66,13 @@ function Order({ session }) {
     };
 
     const handlePayment = async (orderId) => {
-        const clientKey = 'test_ck_D54pQBlueR947LkvJl38WzYpK4rn'; // 테스트 키
+        const clientKey = 'test_ck_Z1aOwX7K8mOJWyYnxkvjVyQxzvNP'; // 테스트 키
         const tossPayments = await loadTossPayments(clientKey);
 
         try {
             await tossPayments.requestPayment('카드', {
                 amount: totalPrice,
-                orderId: `order_${Math.random().toString(36).slice(2, 11)}`,
+                orderId: orderId,
                 orderName: `${cartItems[0].name} 외 ${cartItems.length - 1}건`,
                 successUrl: `${window.location.origin}/success`,
                 failUrl: `${window.location.origin}/fail`,

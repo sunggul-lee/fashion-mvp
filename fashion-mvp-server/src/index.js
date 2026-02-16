@@ -108,7 +108,7 @@ app.post('/api/orders', authenticateUser, async (req, res) => {
 
 app.post('./api/payments/confirm', async (req, res) => {
     const { paymentKey, orderId, amount } = req.body;
-    const secretKey = 'test_sk_...';
+    const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
 
     const response = await axios.post(
         'https://api.tosspayments.com/v1/payments/confirm',
