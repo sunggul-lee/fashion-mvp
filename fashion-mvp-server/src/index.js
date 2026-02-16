@@ -74,17 +74,19 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 app.post('/api/orders', authenticateUser, async (req, res) => {
-    const { items, total_price, address } = req.body;
+    let { items, total_price, address } = req.body;
     const user = req.user; // authenticateUser가 넣어준 정보
 
     try {
+        const formatteditems = typeof items === 'string' ? JSON.parse(items) : items;
+
         const { data, error } = await supabase
             .from('orders')
             .insert([{ 
                 user_id: user.id, 
                 user_email: user.email, 
-                items: items, 
-                total_price: Math.floor(total_price), 
+                items: formatteditems,
+                total_price: Math.floor(Number(total_price)), 
                 address: address
             }]);
 
