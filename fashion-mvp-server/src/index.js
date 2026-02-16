@@ -80,9 +80,13 @@ app.post('/api/orders', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('orders')
-            .insert([
-                { user_id: user.id, user_email: user.email, items, total_price, address, created_at: new Date() }
-            ]);
+            .insert([{ 
+                user_id: user.id, 
+                user_email: user.email, 
+                items: items, 
+                total_price: Math.floor(total_price), 
+                address: address
+            }]);
 
         if (error) {
             console.error("Supabase Insert 에러:", error.message);
