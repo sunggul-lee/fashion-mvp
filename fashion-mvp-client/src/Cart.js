@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
@@ -22,11 +22,11 @@ function Cart({ session, onCartUpdate }) {
 
                 console.log("DB 원본 데이터:", data);
 
-                const formatted = data?.filter(item => {
-                    if (!item.products) console.warn("상품 정보가 없는 장바구니 아이템 발견:", item);
-                    return item.products;
-                }).map(item => ({
-                     ...item.products, quantity: item.quantity 
+                const formatted = data?.filter(cartItem => {
+                    if (!cartItem.products) console.warn("상품 정보가 없는 장바구니 아이템 발견:", cartItem);
+                    return cartItem.products;
+                }).map(cartItem => ({
+                     ...cartItem.products, quantity: cartItem.quantity 
                 })) || [];
 
                 console.log("가공된 데이터:", formatted);
@@ -39,13 +39,13 @@ function Cart({ session, onCartUpdate }) {
         loadCart();
     }, [session]);
 
-
     
     const updateQuantity = async (id, amount) => {
         const item = cartItems.find(i => i.id === id);
         if (!item) return;
         
         const newQuantity = Math.max(1, item.quantity + amount);
+        const updatedCart = cartItems.map(i => i.id === id ? { ...i, quantity: newQuantity} : i);
         
         if (session) {
             await supabase
@@ -53,39 +53,27 @@ function Cart({ session, onCartUpdate }) {
                 .update({ quantity: newQuantity })
                 .eq('user_id', session.user.id)
                 .eq('product_id', id);
-
-            setCartItems(prev => prev.map(i => i.id === id ? { ...i, quantity: newQuantity} : i));
-            
         } else {
-            const updatedCart = cartItems.map(item =>
-            item.id === id ? { ...item, quantity: Math.max(1, item.quantity + amount)} : item
-            );
-            setCartItems(updatedCart);
             localStorage.setItem('cart', JSON.stringify(updatedCart));
         }  
-        if (onCartUpdate) {
-            onCartUpdate();
-        }
+        setCartItems(updatedCart);
+        onCartUpdate?.();
     };
 
     
     const removeItem = async (id) => {
+        const updatedCart = cartItems.filter(i => i.id !== id);
         if (session) {
             await supabase
                 .from('cart')
                 .delete()
                 .eq('user_id', session.user.id)
                 .eq('product_id', id);
-            
-            setCartItems(prev => prev.filter(i => i.id !== id));
         } else {
-            const updatedCart = cartItems.filter(item => item.id !== id);
-            setCartItems(updatedCart);
             localStorage.setItem('cart', JSON.stringify(updatedCart));
-        }  
-        if (onCartUpdate) {
-        onCartUpdate();
-        }      
+        }
+        setCartItems(updatedCart);
+        onCartUpdate?.();      
     };
 
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);

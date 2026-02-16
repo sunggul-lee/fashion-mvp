@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { supabase } from './supabaseClient';
@@ -7,7 +7,6 @@ function ProductDetail({ session, onCartUpdate }) {
     const { id } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
-
     const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
@@ -16,8 +15,10 @@ function ProductDetail({ session, onCartUpdate }) {
             .catch(err => console.error("상세 정보 로드 실패:", err));
     }, [id]);
 
-    // 로그인 여부에 따라 장바구니 저장 위치를 자동으로 결정
-    const handleAddToCart = async (product, amount) => {
+    if (!product) return <div style={{ padding: '20px' }}>로딩 중...</div>;
+
+
+    const handleAddToCart = async (product, amount) => { // quantity => amount 변수명 수정 (함수 내 충돌오류)
         if (session) {
             const { data: existing } = await supabase
                 .from('cart')
@@ -44,14 +45,9 @@ function ProductDetail({ session, onCartUpdate }) {
             localStorage.setItem('cart', JSON.stringify(localCart));
             alert("로그인 전이라 로컬 장바구니에 임시 저장되었습니다.")
         }
-
-        if (onCartUpdate) {
-            onCartUpdate();
-        }
+        onCartUpdate?.();
     };
 
-
-    if (!product) return <div style={{ padding: '20px' }}>로딩 중...</div>;
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto'}}>
@@ -73,7 +69,7 @@ function ProductDetail({ session, onCartUpdate }) {
                         <input 
                             type="number" 
                             min="1" 
-                            value={quantity} 
+                            value={quantity}
                             onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                             style={{ width: '50px', padding: '5px' }}
                         />

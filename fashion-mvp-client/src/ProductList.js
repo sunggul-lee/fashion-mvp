@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 function ProductList() {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products`, { withCredentials: true})
@@ -12,8 +13,13 @@ function ProductList() {
       })
       .catch(err => {
         console.error("데이터 로드 실패:", err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
+
+  if (loading) return <div style={{ padding: '10px 20px' }}>상품을 불러오는 중...</div>;
 
   return (
     <div style={{ padding: '20px'}}>
