@@ -23,6 +23,11 @@ const supabase = createClient(
     process.env.SUPABASE_ANON_KEY
 );
 
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 // 로그인 상태 체크 (주문하기 기능 반영완료)
 const authenticateUser = async (req, res, next) => {
 
@@ -80,7 +85,7 @@ app.post('/api/orders', authenticateUser, async (req, res) => {
     try {
         const formatteditems = typeof items === 'string' ? JSON.parse(items) : items;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('orders')
             .insert([{ 
                 user_id: user.id, 
