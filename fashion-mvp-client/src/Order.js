@@ -46,6 +46,8 @@ function Order({ session }) {
             return;
         }
 
+        console.log("보낼 아이템 목록:", JSON.stringify(cartItems));
+
         const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/orders`, {
             items: cartItems,
             total_price: totalPrice,
