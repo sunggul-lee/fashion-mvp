@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function MyPage({ session }) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [authChecking, setAuthChecking] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
 
         if (session === undefined) return; // 세션 로딩 중 대기
-
-        setAuthChecking(false); // 세션 확인 완료
 
         if (session === null) {
             alert("로그인이 필요합니다.");
@@ -20,17 +17,17 @@ function MyPage({ session }) {
             return;
         }
         
-
         const fetchOrders = async () => {
+            setLoading(true);
             try {
-                const { data, error } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('user_id', session.user.id)
-                    .order('created_at', { ascending: false }); //최신순 정렬
-                
-                if (error) throw error;
-                setOrders(data || []);
+                const token = session.access_token;
+                const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/orders`,{
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (res.data.success) {
+                    setOrders(res.data.orders);
+                }
             } catch (error) {
                 console.error("주문 내역 로드 실패:", error.message);
             } finally {
@@ -41,8 +38,7 @@ function MyPage({ session }) {
         fetchOrders();
     }, [session, navigate]);
 
-    if (authChecking) return <div style={{ padding: '20px' }}>인증 확인 중...</div>;
-    if (loading) return <div style={{ padding: '20px' }}>로딩 중...</div>;
+    if (loading) return <div style={{ padding: '20px' }}>주문 내역을 불러오고 있습니다...</div>;
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
