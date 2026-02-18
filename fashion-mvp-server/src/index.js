@@ -107,23 +107,29 @@ app.post('/api/orders', authenticateUser, async (req, res) => {
 });
 
 app.post('/api/payments/confirm', async (req, res) => {
-    const { paymentKey, orderId, amount } = req.body;
-    const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
+    try {
+        const { paymentKey, orderId, amount } = req.body;
+        const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
 
-    const response = await axios.post(
-        'https://api.tosspayments.com/v1/payments/confirm',
-        { paymentKey, orderId, amount },
-        {
-            headers: {
-                Authorization: `Basic ${Buffer.from(secretKey + ':').toString('base64')}`,
-                'Content-Type': 'application/json'
+        const response = await axios.post(
+            'https://api.tosspayments.com/v1/payments/confirm',
+            { paymentKey, orderId, amount },
+            {
+                headers: {
+                    Authorization: `Basic ${Buffer.from(secretKey + ':').toString('base64')}`,
+                    'Content-Type': 'application/json'
+                }
             }
-        }
-    );
-
-    if (response.status === 200) {
-        // 결제 완료! DB에 주문 내역을 최종 저장합니다.
-        res.json({success: true});
+        );
+        //if (response.status === 200) {
+            // 결제 완료! DB에 주문 내역을 최종 저장합니다.
+            res.json({success: true, data: response.data });
+    } catch (error) {
+        console.error("❌ 토스 승인 실패 상세:", error.response?.data || error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: error.response?.data?.message || "결제 승인 중 내부 서버 에러"
+        });
     }
 });
 
