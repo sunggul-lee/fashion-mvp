@@ -35,7 +35,7 @@ const authenticateUser = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: '로그인이 필요합니다.'})
 
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !user) return res.status(401).json({ error: '유효하지 않은 토큰입니다.'});
 
     req.user = user;
@@ -105,6 +105,22 @@ app.post('/api/orders', authenticateUser, async (req, res) => {
         console.error("서버 내부 에러:", error);
         res.status(500).json({ success: false, error: "서버에서 주문을 처리하지 못했습니다." });
     }
+});
+
+app.get('/api/orders', authenticateUser, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('orders')
+            .select('*')
+            .eq('user_id', req.user.id)
+            .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            res.json({ success: true, orders: data });
+        } catch (error) {
+                console.error("서버 에러:", error);
+                res.status(500).json({ success: false, message: error.message });
+        }
 });
 
 app.post('/api/payments/confirm', async (req, res) => {
