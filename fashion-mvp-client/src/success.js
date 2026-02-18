@@ -14,7 +14,7 @@ function Success ({ session }) {
             const amount = searchParams.get('amount');
 
             try {
-                const res = await axios.post(`${process.env.REACT_APP_BAKCEND_URL}/api/payments/confirm`, {
+                const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/payments/confirm`, {
                     paymentKey, orderId, amount
                 });
             
