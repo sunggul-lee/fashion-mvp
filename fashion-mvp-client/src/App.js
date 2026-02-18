@@ -8,6 +8,8 @@ import { mergeCart } from './cartService';
 import Login from './Login';
 import Order from './Order';
 import MyPage from './MyPage';
+import Success from './success';
+import Fail from './fail';
 
 
 function App() {
@@ -122,6 +124,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/order" element={<Order session={session} />} />
         <Route path="/mypage" element={<MyPage session={session} />} />
+        <Route path="/success" element={<Success session={session} />} />
+        <Route path="/fail" element={<Fail session={session} />} />
       </Routes>
     </Router>
       
