@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function Success ({ session }) {
+function Success ({ session, onCartUpdate }) {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const confirmed = useRef(false);
@@ -39,6 +39,8 @@ function Success ({ session }) {
                 if (res.data.success) {
                     localStorage.removeItem('cart');
                     localStorage.removeItem('pending_order');
+
+                    onCartUpdate?.();
                     
                     alert("결제가 완료되었습니다!");
                     navigate('/', { replace: true });
@@ -55,7 +57,7 @@ function Success ({ session }) {
         };
 
         confirmPayment();
-    }, [searchParams, session, navigate]);
+    }, [searchParams, session, navigate, onCartUpdate]);
 
     if (session === undefined) return <div style={{ padding: '50px', textAlign: 'center'}}>인증 확인 중...</div>
 
