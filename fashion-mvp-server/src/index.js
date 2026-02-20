@@ -126,7 +126,15 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
                     status: 'completed'
             }]);       
             if (orderError) throw orderError;
-            res.json({success: true, message: "결제 승인 및 주문 저장 성공" });
+
+            const { error: cartError } = await supabaseAdmin
+                .from('cart')
+                .delete()
+                .eq('user_id', user.id);
+
+            if (cartError) console.error("장바구니 비우기 실패:", cartError.message);
+
+            res.json({success: true, message: "결제 완료 및 장바구니 비우기 성공" });
         }
     } catch (error) {
         console.error("❌ 결제/주문 통합 처리 실패:", error.response?.data || error.message);

@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { supabase } from './supabaseClient';
 
 function Success ({ session }) {
     const [searchParams] = useSearchParams();
@@ -38,10 +37,7 @@ function Success ({ session }) {
                 });
 
                 if (res.data.success) {
-                    if (session?.user?.id) {
-                        await supabase.from('cart').delete().eq('user_id', session.user.id);
-                        localStorage.removeItem('cart');
-                    }
+                    localStorage.removeItem('cart');
                     localStorage.removeItem('pending_order');
                     
                     alert("결제가 완료되었습니다!");
