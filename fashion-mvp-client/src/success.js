@@ -16,6 +16,8 @@ function Success ({ session }) {
             const pendingData = JSON.parse(localStorage.getItem('pending_order'));
 
             try {
+                const token = session?.access_token || session?.session?.access_token;
+
                 const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/payments/confirm`, {
                     paymentKey: searchParams.get('paymentKey'),
                     orderId: searchParams.get('orderId'),
@@ -24,7 +26,7 @@ function Success ({ session }) {
                     address: pendingData?.address || ""
                 }, {
                     headers: {
-                        Authorization: `Bearer ${session?.access_token || session?.session?.access_token}`
+                        Authorization: `Bearer ${token}`
                     }
                 });
 

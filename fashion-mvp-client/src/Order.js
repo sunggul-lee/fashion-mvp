@@ -32,10 +32,9 @@ function Order({ session }) {
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
     const handleOrder = async (e) => {
-        e.preventDefault();
- 
+        e.preventDefault(); 
         if (!session) return alert("로그인이 필요합니다.")
-    
+            
     try {
         const pendingOrder = { items: cartItems, address: address };
         localStorage.setItem('pending_order', JSON.stringify(pendingOrder));
