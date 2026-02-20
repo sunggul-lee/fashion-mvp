@@ -79,33 +79,6 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-app.post('/api/orders', authenticateUser, async (req, res) => {
-    let { items, total_price, address } = req.body;
-    const user = req.user; // authenticateUser가 넣어준 정보
-
-    try {
-        const formatteditems = typeof items === 'string' ? JSON.parse(items) : items;
-
-        const { data, error } = await supabaseAdmin
-            .from('orders')
-            .insert([{ 
-                user_id: user.id, 
-                user_email: user.email, 
-                items: formatteditems,
-                total_price: Math.floor(Number(total_price)), 
-                address: address
-            }]);
-
-        if (error) {
-            console.error("Supabase Insert 에러:", error.message);
-            return res.status(400).json({ success: false, message: error.message});
-        }
-        res.json({ success: true, message: "주문이 완료되었습니다!" });
-    } catch (error) {
-        console.error("서버 내부 에러:", error);
-        res.status(500).json({ success: false, error: "서버에서 주문을 처리하지 못했습니다." });
-    }
-});
 
 app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
@@ -123,11 +96,13 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
         }
 });
 
-app.post('/api/payments/confirm', async (req, res) => {
-    try {
-        const { paymentKey, orderId, amount } = req.body;
-        const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
+app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
+        const { paymentKey, orderId, amount, cartItems, address } = req.body;
+        const user = req.user; // authenticateUser가 넣어준 정보
 
+    try {
+
+        const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
         const response = await axios.post(
             'https://api.tosspayments.com/v1/payments/confirm',
             { paymentKey, orderId, amount },
@@ -138,18 +113,29 @@ app.post('/api/payments/confirm', async (req, res) => {
                 }
             }
         );
-        //if (response.status === 200) {
-            // 결제 완료! DB에 주문 내역을 최종 저장합니다.
-            res.json({success: true, data: response.data });
+        
+        if (response.status === 200) {
+            const { error: orderError } = await supabaseAdmin
+                .from('orders')
+                .insert([{ 
+                    user_id: user.id, 
+                    user_email: user.email, 
+                    items: cartItems,
+                    total_price: amount, 
+                    address: address,
+                    status: 'completed'
+            }]);       
+            if (orderError) throw orderError;
+            res.json({success: true, message: "결제 승인 및 주문 저장 성공" });
+        }
     } catch (error) {
-        console.error("❌ 토스 승인 실패 상세:", error.response?.data || error.message);
+        console.error("❌ 결제/주문 통합 처리 실패:", error.response?.data || error.message);
         res.status(500).json({ 
             success: false, 
-            message: error.response?.data?.message || "결제 승인 중 내부 서버 에러"
+            message: error.response?.data?.message || "결제는 성공했으나 주문 저장 중 오류가 발생했습니다."
         });
     }
 });
-
 
 app.listen(PORT, () => {
     if (process.env.NODE_ENV === 'production') {

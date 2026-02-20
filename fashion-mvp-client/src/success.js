@@ -13,25 +13,37 @@ function Success ({ session }) {
         confirmed.current = true;
 
         const confirmPayment = async () => {
+            const pendingData = JSON.parse(localStorage.getItem('pending_order'));
+
             try {
                 const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/payments/confirm`, {
                     paymentKey: searchParams.get('paymentKey'),
                     orderId: searchParams.get('orderId'),
-                    amount: searchParams.get('amount')
+                    amount: searchParams.get('amount'),
+                    cartItems: pendingData?.items || [],
+                    address: pendingData?.address || ""
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${session?.access_token || session?.session?.access_token}`
+                    }
                 });
 
                 if (res.data.success) {
                     if (session?.user?.id) {
                         await supabase.from('cart').delete().eq('user_id', session.user.id);
                         localStorage.removeItem('cart');
-                    }                
+                    }
+                    localStorage.removeItem('pending_order');
+                    
                     alert("결제가 완료되었습니다!");
                     navigate('/', { replace: true });
                 }
             } catch (err) {
                 if (err.response?.data?.code === 'ALREADY_PROCESSED_PAYMENT') {
+                    localStorage.removeItem('pending_order')
                     return navigate('/', { replace: true });
                 }
+                console.error("결제 승인오류:", err)
                 alert("결제 승인 중 오류가 발생했습니다.");
                 navigate('/order', { replace: true });
             }
