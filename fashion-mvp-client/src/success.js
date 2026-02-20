@@ -9,6 +9,14 @@ function Success ({ session }) {
     const confirmed = useRef(false);
 
     useEffect(() => {
+        if (session === undefined) return;
+
+        const token = session?.access_token || session?.session?.access_token;
+        if (!token) {
+            console.error("인증 토큰을 찾을 수 없습니다.");
+            return;
+        }
+
         if (confirmed.current || !searchParams.get('paymentKey')) return;
         confirmed.current = true;
 
@@ -16,7 +24,6 @@ function Success ({ session }) {
             const pendingData = JSON.parse(localStorage.getItem('pending_order'));
 
             try {
-                const token = session?.access_token || session?.session?.access_token;
 
                 const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/payments/confirm`, {
                     paymentKey: searchParams.get('paymentKey'),
@@ -53,6 +60,8 @@ function Success ({ session }) {
 
         confirmPayment();
     }, [searchParams, session, navigate]);
+
+    if (session === undefined) return <div style={{ padding: '50px', textAlign: 'center'}}>인증 확인 중...</div>
 
     return (
         <div style={{ textAlign: 'center', padding: '50px' }}>
