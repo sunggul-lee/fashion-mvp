@@ -37,6 +37,10 @@ function App() {
     }
   }, [session]);
 
+  const resetCartCount = () => {
+    setCartCount(0);
+  }
+
 
   useEffect(() => {
     updateCartCount();
@@ -124,7 +128,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/order" element={<Order session={session} />} />
         <Route path="/mypage" element={<MyPage session={session} />} />
-        <Route path="/success" element={<Success session={session} />} />
+        <Route path="/success" element={<Success session={session} onCartReset={resetCartCount} />} />
         <Route path="/fail" element={<Fail session={session} />} />
       </Routes>
     </Router>
