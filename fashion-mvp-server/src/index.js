@@ -42,7 +42,7 @@ const authenticateUser = async (req, res, next) => {
     next();
 }
 
-
+// --- 사용자 전용 API ---
 app.get('/api/products', async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -144,6 +144,38 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         });
     }
 });
+
+// --- 관리자 전용 API ---
+app.get('/api/admin/orders', async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/orders/update', async (req, res) => {
+    const { id, status } =req.body;
+
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('order')
+            .update({ status })
+            .eq('id', id);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 app.listen(PORT, () => {
     if (process.env.NODE_ENV === 'production') {

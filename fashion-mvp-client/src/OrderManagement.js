@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import axios from 'axios';
 
 function OrderManagement() {
         const [orders, setOrders] = useState([]);
@@ -9,26 +9,29 @@ function OrderManagement() {
         }, []);
 
         const fetchOrders = async () => {
-            const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (!error) setOrders(data);
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/admin/orders`);
+                setOrders(response.data);
+            } catch (error) {
+                console.error("주문 로드 실패: ", error.response?.data || error.message);
+            }
+            
         };
 
         const handleUpdateOrderStatus = async (id, status) => {
-            const { error } = await supabase
-                .from('orders')
-                .update({ status })
-                .eq('id', id);
-                
-            if (error) {
-                alert("상태 업데이트 실패: " + error.message);
-            } else {
+            try {
+                const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/admin/orders/update`, {
+                    id,
+                    status
+            });
+
+            if (response.data.success) {
                 fetchOrders();
-            }
-        };
+            } 
+        } catch (error) {
+                alert("주문상태 업데이트 실패: " + (error.response?.data?.error || "서버 오류"));
+        }
+    };
 
         // 스타일 가이드
         const thStyle = { padding: '15px 10px', fontSize: '14px', color: '#555' };
