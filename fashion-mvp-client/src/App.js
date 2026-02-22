@@ -131,7 +131,14 @@ function App() {
         <Route path="/mypage" element={<MyPage session={session} />} />
         <Route path="/success" element={<Success session={session} onCartReset={resetCartCount} />} />
         <Route path="/fail" element={<Fail session={session} />} />
-        <Route path="/admin" element={session?.user?.email === 'gamblee1987@gmail.com' ? <Admin /> : <Navigate to="/" />} />
+        <Route path="/admin" element={
+          session === undefined ? (
+            <div>로딩 중...</div>
+            ) : session?.user?.email === 'gamblee1987@gmail.com' ? (
+              <Admin session={session} />
+            ) : (<Navigate to="/" replace />)
+          } 
+        />
       </Routes>
     </Router>
       
