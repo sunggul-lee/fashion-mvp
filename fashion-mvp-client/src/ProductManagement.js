@@ -71,10 +71,7 @@ function ProductManagement({ session }) {
         }
 
         return (
-            <div style={{ padding: '30px', maxWidth: '1000px', margin: '0 auto' }}>
-                <h1>관리자 대시보드</h1>
-                <p style={{ color: '#666' }}>관리자: {session?.user?.email}</p>
-
+            <div style={{ marginTop: '20px' }}>
                 {/* --- 새 상품 등록 폼 --- */}
                 <section style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
                     <h2>✨ 새 상품 등록</h2>
