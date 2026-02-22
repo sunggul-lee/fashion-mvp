@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import ProductList from './ProductList'
 import ProductDetail from './ProductDetail'
@@ -10,6 +10,7 @@ import Order from './Order';
 import MyPage from './MyPage';
 import Success from './success';
 import Fail from './fail';
+import Admin from './Admin';
 
 
 function App() {
@@ -130,6 +131,7 @@ function App() {
         <Route path="/mypage" element={<MyPage session={session} />} />
         <Route path="/success" element={<Success session={session} onCartReset={resetCartCount} />} />
         <Route path="/fail" element={<Fail session={session} />} />
+        <Route path="/admin" element={session?.user?.email === 'gamblee1987@gmail.com' ? <Admin /> : <Navigate to="/" />} />
       </Routes>
     </Router>
       
