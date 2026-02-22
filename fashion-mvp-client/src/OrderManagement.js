@@ -62,7 +62,7 @@ function OrderManagement() {
                             <tr key={order.id} style={{ borderBottom: '1px solid #eee'}}>
                                 <td style={tdStyle}>
                                     <div style={{ fontSize: '12px', color: '#888' }}>{new Date(order.created_at).toLocaleString()}</div>
-                                    <div style={{ fontSize: 'bold' }}>{order.id.slice(0, 8)}...</div>
+                                    <div style={{ fontWeight: 'bold' }}>{order.id.slice(0, 8)}...</div>
                                 </td>
                                 <td style={tdStyle}>{order.user_email}</td>
                                 <td style={tdStyle}>
