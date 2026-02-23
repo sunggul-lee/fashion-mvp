@@ -101,6 +101,21 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         const user = req.user; // authenticateUser가 넣어준 정보
 
     try {
+        // [검증] 결제 승인 전, 실제 재고가 충분한지 먼저 확인
+        for (const item of cartItems) {
+            const { data: product } = await supabaseAdmin
+                .from('products')
+                .select('stock, name')
+                .eq('id', item.id)
+                .single();
+
+            if (!product || product.stock < item.quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: `[${product?.name || '상품'}] 재고가 부족합니다.`
+                });
+            }
+        }
 
         const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
         const response = await axios.post(
@@ -115,6 +130,15 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         );
         
         if (response.status === 200) {
+            // [재고 차감] 각 상품의 재고를 구매 수량만큼 줄임
+            for (const item of cartItems) {
+                await supabaseAdmin.rpc('decrement_stock', {
+                    product_id: item.id,
+                    quantity_to_subtract: item.quantity
+                });
+            }
+
+
             const { error: orderError } = await supabaseAdmin
                 .from('orders')
                 .insert([{ 
