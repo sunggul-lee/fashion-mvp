@@ -132,11 +132,19 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         if (response.status === 200) {
             // [재고 차감] 각 상품의 재고를 구매 수량만큼 줄임
             for (const item of cartItems) {
-                await supabaseAdmin.rpc('decrement_stock', {
+                console.log(`차감 시도 - ID: ${item.id}, 수량: ${item.quantity}`);
+
+                const { error } = await supabaseAdmin.rpc('decrement_stock', {
                     product_id: item.id,
                     quantity_to_subtract: item.quantity
                 });
+
+            if (error) {
+                console.error("❌ RPC 에러 상세:", error.code, error.message, error.details);
+            } else {
+                console.error(`✅ ${item.id} 차감 성공`);
             }
+        }
 
 
             const { error: orderError } = await supabaseAdmin
@@ -147,6 +155,7 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
                     items: cartItems,
                     total_price: amount, 
                     address: address,
+                    payment_key: paymentKey,
                     status: 'completed'
             }]);       
             if (orderError) throw orderError;
@@ -168,6 +177,24 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         });
     }
 });
+
+/*app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
+    const { orderId, cancelReason } = req.body;
+    const user = req.user;
+
+    try {
+        const { data: order } = await supabaseAdmin
+            .from('order')
+            .select('*')
+            .eq('id', orderId)
+            .single();
+
+        if (!order) return res.status(404).json({ message: "주문 건을 찾을 수 없습니다."});
+
+        // 토스 결제 취소 API 호출 (미구현)
+    
+    }
+})*/
 
 // --- 관리자 전용 API ---
 app.get('/api/admin/orders', async (req, res) => {
