@@ -50,8 +50,11 @@ function Success ({ session, onCartReset }) {
                     localStorage.removeItem('pending_order')
                     return navigate('/', { replace: true });
                 }
-                console.error("결제 승인오류:", err)
-                alert("결제 승인 중 오류가 발생했습니다.");
+
+                console.error("결제 승인오류:", err.response?.data)
+
+                const errorMessage = err.response?.data?.message || "결제 승인 중 오류가 발생했습니다."
+                alert(errorMessage);
                 navigate('/order', { replace: true });
             }
         };
