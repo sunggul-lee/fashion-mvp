@@ -103,7 +103,7 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
     try {
         // [검증] 결제 승인 전, 실제 재고가 충분한지 먼저 확인
         for (const item of cartItems) {
-            const { data: product } = await supabaseAdmin
+            const { data: product, error: findError } = await supabaseAdmin
                 .from('products')
                 .select('stock, name')
                 .eq('id', item.id)
@@ -116,10 +116,10 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
                 })
             }
 
-            if (!product || product.stock < item.quantity) {
+            if (product.stock < item.quantity) {
                 return res.status(400).json({
                     success: false,
-                    message: `[${product?.name || '상품'}] 재고가 부족합니다.`
+                    message: `[${product.name}] 재고가 부족합니다.`
                 });
             }
         }
@@ -139,17 +139,12 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         if (response.status === 200) {
             // [재고 차감] 각 상품의 재고를 구매 수량만큼 줄임
             for (const item of cartItems) {
-                console.log(`차감 시도 - ID: ${item.id}, 수량: ${item.quantity}`);
-
-                const { error } = await supabaseAdmin.rpc('decrement_stock', {
+                const { error: rpcError } = await supabaseAdmin.rpc('decrement_stock', {
                     product_id: item.id,
                     quantity_to_subtract: item.quantity
                 });
 
-            if (error) {
-                console.error("❌ RPC 에러 상세:", error.code, error.message, error.details);
-            } else {
-                console.error(`✅ ${item.id} 차감 성공`);
+            if (rpcError) console.log(`❌ ${item.id} 차감 실패:`, rpcError.message);
             }
         }
 
@@ -165,18 +160,20 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
                     payment_key: paymentKey,
                     status: 'completed'
             }]);       
-            if (orderError) throw orderError;
+            if (orderError) {
+                console.error("❌ 주문 테이블 저장 실패:", orderError);
+                throw orderError;
+            }
 
             const { error: cartError } = await supabaseAdmin
                 .from('cart')
                 .delete()
                 .eq('user_id', user.id);
 
-            if (cartError) console.error("장바구니 비우기 실패:", cartError.message);
-
+            if (cartError) console.log("장바구니 비우기 실패:", cartError.message);
             res.json({success: true, message: "결제 완료 및 장바구니 비우기 성공" });
-        }
-    } catch (error) {
+
+        } catch (error) {
         console.error("❌ 결제/주문 통합 처리 실패:", error.response?.data || error.message);
         res.status(500).json({ 
             success: false, 
