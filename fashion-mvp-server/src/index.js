@@ -182,23 +182,52 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
     }
 });
 
-/*app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
+app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
     const { orderId, cancelReason } = req.body;
-    const user = req.user;
 
     try {
-        const { data: order } = await supabaseAdmin
+        // 주문 정보와 payment_key 조회
+        const { data: order, error: fetchError } = await supabaseAdmin
             .from('order')
             .select('*')
             .eq('id', orderId)
             .single();
 
-        if (!order) return res.status(404).json({ message: "주문 건을 찾을 수 없습니다."});
+        if (fetchError || !order) return res.status(404).json({ message: "주문 건을 찾을 수 없습니다." });
+        if (order.status === 'cancelled') return res.status(400).json({ message: "이미 취소된 주문입니다." })
 
-        // 토스 결제 취소 API 호출 (미구현)
-    
+        // 토스 결제 취소 API 호출
+        const reponse = await axios.post(
+            `https://api.tosspayments.com/v1/payments/${order.payment_key}/cancel`,
+            { cancelReason: cancelReason || "고객 변심" },
+            {
+                headers: {
+                    Authorization: `Basic ${Buffer.from(secretKey + ':').toString('base64')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        if (response.status === 200) {
+            // 재고 복구 (increment_stock 함수 필요)
+            for (const item of order.items) ('increment_stock', {
+                product_id: item.id,
+                quantity_to_add: item.quantity
+            });
+        }
+
+        // 주문 상태 변경
+        await supabaseAdmin.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
+
+        res.json({ success: true, message: "환불 및 재고 복구가 완료되었습니다." });
+    } catch (error) {
+        console.error("환불 처리 중 오류:", error.response?.data || error.message);
+        res.status(500).json({
+            success: false,
+            message: error.response?.data?.message || "환불 처리 중 오류가 발생했습니다."
+        });
     }
-})*/
+});
 
 // --- 관리자 전용 API ---
 app.get('/api/admin/orders', async (req, res) => {
