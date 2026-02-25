@@ -197,7 +197,7 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
         if (order.status === 'cancelled') return res.status(400).json({ message: "이미 취소된 주문입니다." })
 
         // 토스 결제 취소 API 호출
-        const reponse = await axios.post(
+        const response = await axios.post(
             `https://api.tosspayments.com/v1/payments/${order.payment_key}/cancel`,
             { cancelReason: cancelReason || "고객 변심" },
             {
