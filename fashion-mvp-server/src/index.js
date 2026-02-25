@@ -109,6 +109,13 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
                 .eq('id', item.id)
                 .single();
 
+            if (findError || !product){
+                return res.status(400).json({
+                    success: false,
+                    message: `[상품 ID: ${item.id}] 존재하지 않는 상품입니다.`
+                })
+            }
+
             if (!product || product.stock < item.quantity) {
                 return res.status(400).json({
                     success: false,
