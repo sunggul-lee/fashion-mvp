@@ -213,7 +213,7 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
             // 재고 복구 (increment_stock 함수 필요)
             console.log("재고 복구 시작: ", order.items)
 
-            if (order.item && Array.isArray(order.items)) {
+            if (order.items && Array.isArray(order.items)) {
                 for (const item of order.items) { 
                     console.log("RPC 전달 데이터 확인:", {
                         id: item.id,
