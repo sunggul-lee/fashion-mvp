@@ -29,6 +29,8 @@ const supabaseAdmin = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
+
 // 로그인 상태 체크 (주문하기 기능 반영완료)
 const authenticateUser = async (req, res, next) => {
 
@@ -124,7 +126,6 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
             }
         }
 
-        const secretKey = 'test_sk_kYG57Eba3GbRZOEYg2g58pWDOxmA';
         const response = await axios.post(
             'https://api.tosspayments.com/v1/payments/confirm',
             { paymentKey, orderId, amount },
