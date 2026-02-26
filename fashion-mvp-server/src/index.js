@@ -188,7 +188,7 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
     try {
         // 주문 정보와 payment_key 조회
         const { data: order, error: fetchError } = await supabaseAdmin
-            .from('order')
+            .from('orders')
             .select('*')
             .eq('id', orderId)
             .single();
@@ -210,16 +210,26 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
 
         if (response.status === 200) {
             // 재고 복구 (increment_stock 함수 필요)
-            for (const item of order.items) ('increment_stock', {
-                product_id: item.id,
-                quantity_to_add: item.quantity
-            });
+            if (order.item && Array.isArray(order.item)) {
+                for (const item of order.items) { 
+                    await supabaseAdmin.rpc('increment_stock', {
+                        product_id: item.id,
+                        quantity_to_add: item.quantity
+                    });
+                }
+            }
+    
+
+            // 주문 상태 변경
+            const { error: updateError } = await supabaseAdmin
+                .from('orders')
+                .update({ status: 'cancelled' })
+                .eq('id', orderId);
+            
+            if (updateError) throw updateError;
+
+            res.json({ success: true, message: "환불 및 재고 복구가 완료되었습니다." });
         }
-
-        // 주문 상태 변경
-        await supabaseAdmin.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
-
-        res.json({ success: true, message: "환불 및 재고 복구가 완료되었습니다." });
     } catch (error) {
         console.error("환불 처리 중 오류:", error.response?.data || error.message);
         res.status(500).json({
@@ -228,6 +238,7 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
         });
     }
 });
+
 
 // --- 관리자 전용 API ---
 app.get('/api/admin/orders', async (req, res) => {
