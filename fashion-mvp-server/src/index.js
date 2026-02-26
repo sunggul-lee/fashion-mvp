@@ -213,6 +213,10 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
             // 재고 복구 (increment_stock 함수 필요)
             if (order.item && Array.isArray(order.item)) {
                 for (const item of order.items) { 
+                    console.log("RPC 전달 데이터 확인:", {
+                        id: item.id,
+                        qty: item.quantity
+                    });
                     await supabaseAdmin.rpc('increment_stock', {
                         product_id: item.id,
                         quantity_to_add: item.quantity
