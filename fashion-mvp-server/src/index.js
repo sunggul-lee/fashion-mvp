@@ -115,10 +115,10 @@ app.get('/api/products/search', async (req, res) => {
         }
 
         // 정렬 로직
-        if (sort === 'price_acs') {
+        if (sort === 'price_asc') {
             query = query.order('price', { ascending: true });
         } else if (sort === 'price_desc') {
-            query = query.order('price', { asceding: false });
+            query = query.order('price', { ascending: false });
         } else {
             query = query.order('created_at', { ascending: false }); // 기본값 최신순
         }

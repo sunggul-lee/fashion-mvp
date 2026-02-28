@@ -46,7 +46,7 @@ function ProductList() {
         <h2>신상품 목록</h2>
 
         {/* --- 필터 컨트롤러 영역 추가 --- */}
-        <div sytle={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <input
             name="keyword"
             type="text"
