@@ -98,6 +98,42 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
         }
 });
 
+app.get('/api/products/search', async (req, res) => {
+    const { keyword, category, sort } = req.query;
+
+    try {
+        let query = supabase.from('products').select('*');
+
+        // 카테고리 필터 (전체가 아닐 때만)
+        if (category && category !== '전체') {
+            query = query.eq('category', category);
+        }
+
+        // 검색어 필터 (상품명에 키워드 포함 여부, 대소문자 무시)
+        if (keyword) {
+            query = query.ilike('name', `%${keyword}%`);
+        }
+
+        // 정렬 로직
+        if (sort === 'price_acs') {
+            query = query.order('price', { ascending: true });
+        } else if (sort === 'price_desc') {
+            query = query.order('price', { asceding: false });
+        } else {
+            query = query.order('created_at', { ascending: false }); // 기본값 최신순
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        res.json(data);
+        } catch (err) {
+            console.error("검색 에러:", err);
+            res.status(500).json({ error: "검색 중 오류가 발생했습니다." });
+        }
+});
+
+
 app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         const { paymentKey, orderId, amount, cartItems, address } = req.body;
         const user = req.user; // authenticateUser가 넣어준 정보
