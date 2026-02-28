@@ -45,23 +45,40 @@ const authenticateUser = async (req, res, next) => {
 }
 
 // --- 사용자 전용 API ---
-app.get('/api/products', async (req, res) => {
-    try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*');
 
-        if (error) {
-            console.error("DB 에러:", error.message);
-            return res.status(400).json({error: error.message});  
+app.get('/api/products', async (req, res) => {
+    const { keyword, category, sort } = req.query;
+
+    try {
+        let query = supabase.from('products').select('*');
+
+        // 카테고리 필터 (전체가 아닐 때만)
+        if (category && category !== '전체') {
+            query = query.eq('category', category);
         }
 
-        res.json(data);
+        // 검색어 필터 (상품명에 키워드 포함 여부, 대소문자 무시)
+        if (keyword) {
+            query = query.ilike('name', `%${keyword}%`);
+        }
 
-    } catch (err) {
-        console.error("서버 오류:", err);
-        res.status(500).json({error:"서버 내부 오류 발생"});
-    }
+        // 정렬 로직
+        if (sort === 'price_asc') {
+            query = query.order('price', { ascending: true });
+        } else if (sort === 'price_desc') {
+            query = query.order('price', { ascending: false });
+        } else {
+            query = query.order('created_at', { ascending: false }); // 기본값 최신순
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        res.json(data);
+        } catch (err) {
+            console.error("검색 에러:", err);
+            res.status(500).json({ error: "검색 중 오류가 발생했습니다." });
+        }
 });
 
 app.get('/api/products/:id', async (req, res) => {
@@ -95,41 +112,6 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
         } catch (error) {
                 console.error("서버 에러:", error);
                 res.status(500).json({ success: false, message: error.message });
-        }
-});
-
-app.get('/api/products/search', async (req, res) => {
-    const { keyword, category, sort } = req.query;
-
-    try {
-        let query = supabase.from('products').select('*');
-
-        // 카테고리 필터 (전체가 아닐 때만)
-        if (category && category !== '전체') {
-            query = query.eq('category', category);
-        }
-
-        // 검색어 필터 (상품명에 키워드 포함 여부, 대소문자 무시)
-        if (keyword) {
-            query = query.ilike('name', `%${keyword}%`);
-        }
-
-        // 정렬 로직
-        if (sort === 'price_asc') {
-            query = query.order('price', { ascending: true });
-        } else if (sort === 'price_desc') {
-            query = query.order('price', { ascending: false });
-        } else {
-            query = query.order('created_at', { ascending: false }); // 기본값 최신순
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-
-        res.json(data);
-        } catch (err) {
-            console.error("검색 에러:", err);
-            res.status(500).json({ error: "검색 중 오류가 발생했습니다." });
         }
 });
 

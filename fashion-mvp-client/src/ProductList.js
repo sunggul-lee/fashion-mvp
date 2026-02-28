@@ -17,7 +17,7 @@ function ProductList() {
     const getFilteredProducts = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products/search`, {
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products`, {
           params: filters // 쿼리 스트링 전달
         });
         setProducts(res.data);
