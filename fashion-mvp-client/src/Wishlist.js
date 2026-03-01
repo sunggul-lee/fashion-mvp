@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'reac-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-function Wishlist({ sesssion }) {
+function Wishlist({ session }) {
     const [wishProducts, setWishProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -88,3 +88,5 @@ function Wishlist({ sesssion }) {
         </div>
     );
 }
+
+export default Wishlist;

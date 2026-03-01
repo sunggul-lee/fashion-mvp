@@ -11,6 +11,7 @@ import MyPage from './MyPage';
 import Success from './success';
 import Fail from './fail';
 import Admin from './Admin';
+import Wishlist from './Wishlist';
 
 
 function App() {
@@ -125,6 +126,7 @@ function App() {
       <Routes>
         <Route path="/" element={<ProductList session={session} />} />
         <Route path="/product/:id" element={<ProductDetail session={session} onCartUpdate={updateCartCount} />} />
+        <Route path="/wishlist" element={<Wishlist session={session} />} />
         <Route path="/cart" element={<Cart session={session} onCartUpdate={updateCartCount} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/order" element={<Order session={session} />} />
