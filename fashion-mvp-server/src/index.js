@@ -76,7 +76,7 @@ app.get('/api/products', async (req, res) => {
 
         query = query.range(offset, offset + limit -1);
 
-        const { data, error } = await query;
+        const { data, error, count } = await query;
         if (error) throw error;
 
         res.json({
