@@ -105,6 +105,10 @@ function App() {
         )}
         </Link>
 
+        <Link to="/wishlist" style={{ position: 'relative', textDecoration: 'none', color: 'black' }}>
+            좋아요
+        </Link>
+
         {session && (
           <Link to="/mypage" style={{ textDecoration: 'none', color: 'black' }}>
             주문내역
