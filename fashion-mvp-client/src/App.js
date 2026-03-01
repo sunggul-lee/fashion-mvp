@@ -123,7 +123,7 @@ function App() {
       </nav>
 
       <Routes>
-        <Route path="/" element={<ProductList />} />
+        <Route path="/" element={<ProductList session={session} />} />
         <Route path="/product/:id" element={<ProductDetail session={session} onCartUpdate={updateCartCount} />} />
         <Route path="/cart" element={<Cart session={session} onCartUpdate={updateCartCount} />} />
         <Route path="/login" element={<Login />} />

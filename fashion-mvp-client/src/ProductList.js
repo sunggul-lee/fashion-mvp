@@ -1,12 +1,52 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { toggleWishlist } from './wishlistService';
 
-function ProductList() {
+function ProductList({ session }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [totalPages, setTotalPages] = useState(1);
 
+  const [wishlistIds, setWishlistIds] = useState([]); // 찜한 상품 ID만 관리 (속도 최적화)
+
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (session?.user) {
+        try {
+          const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/wishlist`, {
+            params: { userId: session.user.id }
+          });
+          setWishlistIds(res.data.products.map(p => p.id));
+        } catch (e) { console.error("DB 찜 로드 실패"); }
+      } else {
+        const local = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        setWishlistIds(local.map(p => p.id));
+      }
+    };
+    fetchWishlist();
+  }, [session]);
+
+
+  const handleWishClick = async (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const result = await toggleWishlist(product, session?.user);
+
+      if (result.action === 'added') {
+        setWishlistIds(prev => [...prev, product.id]);
+      } else {
+        setWishlistIds(prev => prev.filter(id => id !== product.id));
+      }
+    } catch (err) {
+      alert("찜하기 처리에 실패했습니다.");
+    }
+  };
+
+
+  const [totalPages, setTotalPages] = useState(1);
+  
   // 필터 상태 통합 관리
   const [filters, setFilters] = useState({
     keyword: '',
@@ -14,6 +54,7 @@ function ProductList() {
     sort: 'latest',
     page: 1
   });
+
 
   useEffect(() => {
     const getFilteredProducts = async () => {
@@ -93,6 +134,32 @@ function ProductList() {
             gap: '20px'
             }}>
               {products.length > 0 ? products.map((product) => (
+                <div key={product.id} style={{ position: 'relative' }}>
+
+                  {/* --- 찜하기(하트) 버튼 추가 --- */}
+                  <button
+                    onClick={(e) => handleWishClick(e, product)}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      zIndex: 10,
+                      background: 'rgba(255, 255, 255, 0.8)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '18px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {wishlistIds.includes(product.id) ? '❤️' : '🤍'}
+                  </button>
+
                 <Link
                     to={`/product/${product.id}`}
                     key={product.id}
@@ -111,12 +178,13 @@ function ProductList() {
                       </div>
                     </div>
                 </Link>
-              )) : (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px', color: '#888' }}>
+              </div>
+            )) : (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px', color: '#888' }}>
                   검색 결과와 일치하는 상품이 없습니다.
-                </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
               {/* --- 페이지네이션 UI 구현 (이전/다음 버튼 포함) --- */}
               {products.length > 0 && (
@@ -164,7 +232,6 @@ function ProductList() {
                   >
                     다음 &gt;
                   </button>
-
               </div>
               )}
           </>

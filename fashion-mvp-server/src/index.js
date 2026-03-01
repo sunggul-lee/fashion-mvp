@@ -126,6 +126,58 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
         }
 });
 
+app.post('/api/wishlist/toggle', async (req, res) => {
+    const { productId, userId } = req.body;
+
+    if (!userId) {
+        return res.status(401).json({ error: "로그인이 필요합니다." });
+    }
+
+    try {
+        const { data: existing } = await supabase
+            .from('wishlist')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('product_id', productId)
+            .maybeSingle();
+
+        if (existing) {
+            await supabase.from('wishlist').delete().eq('id', existing.id);
+            return res.json({ action: 'removed' });
+        } else {
+            await supabase.from('wishlist').insert([{ user_id: userId, product_id: productId }]);
+            return res.json({ action: 'added' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: "찜하기 처리 중 오류 발생" });
+    }
+});
+
+app.post('/api/wishlist/merge', async (req, res) => {
+    const { userId, localProductIds } = req.body;
+
+    if (!userId || !localProductIds || localProductIds.length === 0) {
+        return res.status(400).json({ message: "데이터가 없습니다." });
+    }
+
+    try {
+        const insertData = localProductIds.map(id => ({
+            user_id: userId,
+            product_id: id
+        }));
+
+        const { error } = await supabase
+            .from('wishlist')
+            .upsert(insertData, { onConflict: 'user_id, product_id' });
+
+        if (error) throw error;
+        res.json({ message: "동기화 완료" });
+    } catch (err) {
+        console.error("동기화 오류:", err);
+        res.status(500).json({ error: "동기화 중 오류 발생" });
+    }
+});
+
 
 app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         const { paymentKey, orderId, amount, cartItems, address } = req.body;
