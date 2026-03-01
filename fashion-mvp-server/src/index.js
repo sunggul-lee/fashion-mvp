@@ -110,6 +110,34 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 
+app.get('/api/wishlist', async (req, res) => {
+    const { userId } = req.query;
+
+    try {
+        const { data, error } = await supabase
+            .from('wishlist')
+            .select(`
+                product_id,
+                products(
+                    id,
+                    name,
+                    price,
+                    image_url,
+                    category
+                )
+            `)
+            .eq('user_id', userId);
+
+        if (error) throw error;
+
+        const formatted = data.map(item => item.products);
+        res.json({ products: formatted });
+        } catch (err) {
+            res.status(500).json({ error: "찜 목록 조회 실패" });
+        }
+});
+
+
 app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin
