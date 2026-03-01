@@ -22,6 +22,8 @@ function ProductList() {
         const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products`, {
           params: filters // 쿼리 스트링 전달
         });
+        console.log("API 응답:", res.data); //페이지네이션 디버그용
+
         setProducts(res.data.products || []);
         setTotalPages(res.data.totalPages || 1);
       } catch (err) {
@@ -116,24 +118,53 @@ function ProductList() {
               )}
             </div>
 
+              {/* --- 페이지네이션 UI 구현 (이전/다음 버튼 포함) --- */}
               {products.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', gap: '5px' }}>
+
+                  {/* [이전] 버튼: 1페이지면 클릭 안 되게 처리 */}
+                  <button
+                    onClick={() => handlePageChange(filters.page - 1)}
+                    disabled={filters.page === 1}
+                    style={{
+                      ...paginationButtonStyle,
+                      cursor: filters.page === 1 ? 'not-allowed' : 'pointer',
+                      opacity: filters.page === 1 ? 0.5 : 1,
+                      backgroundColor: '#eee'
+                    }}
+                  >
+                    &lt; 이전
+                  </button>
+    
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                     <button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
                       style={{
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
+                        ...paginationButtonStyle,
                         backgroundColor: filters.page === pageNum? '#333' : '#fff',
                         color: filters.page === pageNum ? '#fff' : '#333',
-                        cursor: 'pointer'
+                        fontWeight: filters.page === pageNum ? 'bold' : 'normal'
                       }}
                     >
                       {pageNum}
                     </button>
                   ))}
+
+                  {/* [다음] 버튼: 마지막 페이지면 클릭 안 되게 처리 */}
+                  <button
+                    onClick={() => handlePageChange(filters.page +1)}
+                    disabled={filters.page === totalPages}
+                    style={{
+                      ...paginationButtonStyle,
+                      cursor: filters.page === 1 ? 'not-allowed' : 'pointer',
+                      opacity: filters.page === 1 ? 0.5 : 1,
+                      backgroundColor: '#eee'
+                    }}
+                  >
+                    다음 &gt;
+                  </button>
+
               </div>
               )}
           </>
@@ -147,6 +178,15 @@ const selectStyle = {
   borderRadius: '4px',
   border: '1px solid #ddd',
   cursor: 'pointer'
+};
+
+const paginationButtonStyle = {
+  padding:'8px 14px',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '14px',
+  transition: 'all 0.2s ease'
 };
 
 export default ProductList;
