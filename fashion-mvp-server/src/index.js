@@ -3,6 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { createClient } = require('@supabase/supabase-js');
+const { count } = require('yargs');
 
 dotenv.config();
 
@@ -47,10 +48,12 @@ const authenticateUser = async (req, res, next) => {
 // --- 사용자 전용 API ---
 
 app.get('/api/products', async (req, res) => {
-    const { keyword, category, sort } = req.query;
+    const { keyword, category, sort, page = 1 } = req.query;
+    const limit = 12; // 한 페이지에 보여줄 개수
+    const offset = (page - 1) * limit;
 
     try {
-        let query = supabase.from('products').select('*');
+        let query = supabase.from('products').select('*', { count: 'exact' });
 
         // 카테고리 필터 (전체가 아닐 때만)
         if (category && category !== '전체') {
@@ -71,13 +74,21 @@ app.get('/api/products', async (req, res) => {
             query = query.order('created_at', { ascending: false }); // 기본값 최신순
         }
 
+        query = query.range(offset, offset + limit -1);
+
         const { data, error } = await query;
         if (error) throw error;
 
-        res.json(data);
+        res.json({
+            products: data,
+            totalCount: count,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(count / limit)
+        });
+
         } catch (err) {
-            console.error("검색 에러:", err);
-            res.status(500).json({ error: "검색 중 오류가 발생했습니다." });
+            console.error("검색/페이지네이션 에러:", err);
+            res.status(500).json({ error: "데이터를 불러오는 중 오류가 발생했습니다." });
         }
 });
 

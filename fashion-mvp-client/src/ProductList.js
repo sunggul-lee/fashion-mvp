@@ -5,12 +5,14 @@ import { Link } from 'react-router-dom';
 function ProductList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
   // 필터 상태 통합 관리
   const [filters, setFilters] = useState({
     keyword: '',
     category: '전체',
-    sort: 'latest'
+    sort: 'latest',
+    page: 1
   });
 
   useEffect(() => {
@@ -20,9 +22,11 @@ function ProductList() {
         const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/products`, {
           params: filters // 쿼리 스트링 전달
         });
-        setProducts(res.data);
+        setProducts(res.data.products || []);
+        setTotalPages(res.data.totalPages || 1);
       } catch (err) {
           console.error("제품 로드 실패", err);
+          setProducts([]);
       }
       setLoading(false);
     };
@@ -37,7 +41,12 @@ function ProductList() {
     
     const handleFilterChange = (e) => {
       const { name, value } = e.target;
-      setFilters(prev => ({ ...prev, [name]: value }));
+      setFilters(prev => ({ ...prev, [name]: value, page: 1 }));
+    };
+
+    const handlePageChange = (newPage) => {
+      setFilters(prev => ({ ...prev, page: newPage }));
+      window.scrollTo(0, 0); // 페이지 이동 시 상단으로 스크롤
     };
 
 
@@ -75,6 +84,7 @@ function ProductList() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '50px' }}>상품을 불러오는 중...</div>
         ) : (
+          <>
            <div style={{ 
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
@@ -98,13 +108,35 @@ function ProductList() {
                           <p style={{ fontWeight: 'bold', color: '#333' }}>{product.price?.toLocaleString()}원</p>
                       </div>
                     </div>
-                  </Link>
-                )) : (
-                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px', color: '#888' }}>
-                    검색 결과와 일치하는 상품이 없습니다.
-                  </div>
-                )}
+                </Link>
+              )) : (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px', color: '#888' }}>
+                  검색 결과와 일치하는 상품이 없습니다.
+                </div>
+              )}
+            </div>
+
+              {products.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', gap: '5px' }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      style={{
+                        padding: '8px 12px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        backgroundColor: filters.page === pageNum? '#333' : '#fff',
+                        color: filters.page === pageNum ? '#fff' : '#333',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
               </div>
+              )}
+          </>
         )}
       </div>
   );
