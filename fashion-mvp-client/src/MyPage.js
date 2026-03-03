@@ -152,12 +152,22 @@ function MyPage({ session}) {
                                                 <span
                                                     key={num}
                                                     onClick={() => setReviewForm({...reviewForm, rating: num})}
-                                                    style={{ cursor: 'pointer', fontSize: '1.2rem', color: num <= reviewForm.rating? '#ffc107' : '#ddd' }}
-                                                >★ {item.avgRating} {item.reviewCount}</span>
+                                                    style={{ cursor: 'pointer', fontSize: '1.5rem', color: num <= reviewForm.rating? '#ffc107' : '#ddd', marginRight: '5px' }}
+                                                >★</span>
                                             ))}
+                                            <span style={{ marginLeft: '10px', fontSize: '0.9rem', color: '#666' }}>{reviewForm.rating}점</span>
                                             </div>
                                         <textarea
-                                            style={reviewTextStyle}
+                                            style={{
+                                                ...reviewTextStyle,
+                                                color: '#333',
+                                                background: '#fff',
+                                                width: '100%',
+                                                minHeight: '100px',
+                                                padding: '10px',
+                                                fontSize: '14px',
+                                                border: '1px solid #ccc'
+                                            }}
                                             placeholder="상품은 어떠셨나요? 솔직한 후기를 남겨주세요."
                                             value={reviewForm.content}
                                             onChange={(e) => setReviewForm({...reviewForm, content: e.target.value})}

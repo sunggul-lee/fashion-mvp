@@ -232,10 +232,11 @@ app.post ('/api/reviews', async (req, res) => {
             .select('id')
             .eq('id', orderId)
             .eq('user_id', userId)
-            .eq('product_id', productId)
             .single();
 
-        if (!order || orderError) {
+        const hasProduct = order?.items?.some(item => String(item.product_id) === String(productId)); 
+
+        if (!hasProduct || orderError) {
             return res.status(403).json({ error: "실제 구매한 상품만 리뷰 작성이 가능합니다."});
         }
 
@@ -244,7 +245,7 @@ app.post ('/api/reviews', async (req, res) => {
             .from('review')
             .select('id')
             .eq('user_id', userId)
-            .eq('items.id', productId)
+            .eq('product_id', productId)
             .maybeSingle();
 
             if (existingReview) {
@@ -254,7 +255,13 @@ app.post ('/api/reviews', async (req, res) => {
             // 리뷰 등록
             const { error: insertError } = await supabase
                 .from('review')
-                .insert([{ product_id: productId, user_id: userId, rating, content }]);
+                .insert([{ 
+                    product_id: productId, 
+                    user_id: userId, 
+                    rating: Number(rating), 
+                    content, 
+                    order_id: orderId 
+                }]);
 
             if (insertError) throw insertError;
 
