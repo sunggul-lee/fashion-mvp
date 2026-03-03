@@ -153,7 +153,7 @@ function MyPage({ session}) {
                                                     key={num}
                                                     onClick={() => setReviewForm({...reviewForm, rating: num})}
                                                     style={{ cursor: 'pointer', fontSize: '1.2rem', color: num <= reviewForm.rating? '#ffc107' : '#ddd' }}
-                                                >★ {item.avgRating} ({item.reviewCount})</span>
+                                                >★ {item.avgRating} {item.reviewCount}</span>
                                             ))}
                                             </div>
                                         <textarea

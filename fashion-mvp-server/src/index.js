@@ -244,7 +244,7 @@ app.post ('/api/reviews', async (req, res) => {
             .from('review')
             .select('id')
             .eq('user_id', userId)
-            .eq('product_id', productId)
+            .eq('items.id', productId)
             .maybeSingle();
 
             if (existingReview) {
