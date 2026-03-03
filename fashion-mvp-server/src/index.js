@@ -53,7 +53,7 @@ app.get('/api/products', async (req, res) => {
     const offset = (page - 1) * limit;
 
     try {
-        let query = supabase.from('products').select(`*, reviews( rating )`, { count: 'exact' });
+        let query = supabase.from('products').select(`*, review( rating )`, { count: 'exact' });
 
         // 카테고리 필터 (전체가 아닐 때만)
         if (category && category !== '전체') {
@@ -253,7 +253,7 @@ app.post ('/api/reviews', async (req, res) => {
 
             // 리뷰 등록
             const { error: insertError } = await supabase
-                .from('reviews')
+                .from('review')
                 .insert([{ product_id: productId, user_id: userId, rating, content }]);
 
             if (insertError) throw insertError;
