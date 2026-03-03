@@ -53,7 +53,7 @@ app.get('/api/products', async (req, res) => {
     const offset = (page - 1) * limit;
 
     try {
-        let query = supabase.from('products').select('*', { count: 'exact' });
+        let query = supabase.from('products').select(`*, reviews( rating )`, { count: 'exact' });
 
         // 카테고리 필터 (전체가 아닐 때만)
         if (category && category !== '전체') {
@@ -79,8 +79,21 @@ app.get('/api/products', async (req, res) => {
         const { data, error, count } = await query;
         if (error) throw error;
 
+        const productWithStats = data.map(product => {
+            const reviewCount = product.review ? product.review.length : 0;
+            const totalRating = product.review ? product.review.reduce((sum, r) => sum + r.rating, 0) : 0;
+            const avgRating = reviewCount > 0 ? (totalRating / reviewCount).toFixed(1) : "0.0";
+
+            return {
+                ...product,
+                avgRaing: parseFloat(avgRating),
+                reviewCount: reviewCount,
+                reviews: undefined // 데이터 전송 최적화를 위해 원본 리뷰 배열은 제거
+            };
+        });
+
         res.json({
-            products: data,
+            products: productWithStats,
             totalCount: count,
             currentPage: parseInt(page),
             totalPages: Math.ceil(count / limit)
@@ -107,6 +120,23 @@ app.get('/api/products/:id', async (req, res) => {
     } catch (error) {
         res.status(404).json({ error: "상품을 찾을 수 없습니다."});
     }
+});
+
+
+app.get('/api/orders', authenticateUser, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('orders')
+            .select('*')
+            .eq('user_id', req.user.id)
+            .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            res.json({ success: true, orders: data });
+        } catch (error) {
+                console.error("서버 에러:", error);
+                res.status(500).json({ success: false, message: error.message });
+        }
 });
 
 
@@ -138,22 +168,6 @@ app.get('/api/wishlist', async (req, res) => {
 });
 
 
-app.get('/api/orders', authenticateUser, async (req, res) => {
-    try {
-        const { data, error } = await supabaseAdmin
-            .from('orders')
-            .select('*')
-            .eq('user_id', req.user.id)
-            .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            res.json({ success: true, orders: data });
-        } catch (error) {
-                console.error("서버 에러:", error);
-                res.status(500).json({ success: false, message: error.message });
-        }
-});
-
 app.post('/api/wishlist/toggle', async (req, res) => {
     const { productId, userId } = req.body;
 
@@ -181,6 +195,7 @@ app.post('/api/wishlist/toggle', async (req, res) => {
     }
 });
 
+
 app.post('/api/wishlist/merge', async (req, res) => {
     const { userId, localProductIds } = req.body;
 
@@ -203,6 +218,49 @@ app.post('/api/wishlist/merge', async (req, res) => {
     } catch (err) {
         console.error("동기화 오류:", err);
         res.status(500).json({ error: "동기화 중 오류 발생" });
+    }
+});
+
+
+app.post ('/api/reviews', async (req, res) => {
+    const { productId, userId, rating, content, orderId } = req.body;
+
+    try {
+        // 해당 유저가 이 상품을 구매한 내역(order)이 있는지 확인
+        const { data: order, error: orderError } = await supabaseAdmin
+            .from('orders')
+            .select('id')
+            .eq('id', orderId)
+            .eq('user_id', userId)
+            .eq('product_id', productId)
+            .single();
+
+        if (!order || orderError) {
+            return res.status(403).json({ error: "실제 구매한 상품만 리뷰 작성이 가능합니다."});
+        }
+
+        // 이미 리뷰를 작성했는지 확인 (중복 작성 방지)
+        const { data: existingReview } = await supabase
+            .from('review')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('product_id', productId)
+            .maybeSingle();
+
+            if (existingReview) {
+                return res.status(400).json({ error: "이미 리뷰를 작성한 상품입니다." });
+            }
+
+            // 리뷰 등록
+            const { error: insertError } = await supabase
+                .from('reviews')
+                .insert([{ product_id: productId, user_id: userId, rating, content }]);
+
+            if (insertError) throw insertError;
+
+            res.json({ message: "리뷰가 등록되었습니다." });
+    } catch (err) {
+        res.status(500).json({ error: "서버 오류" });
     }
 });
 
