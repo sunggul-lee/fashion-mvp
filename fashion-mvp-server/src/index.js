@@ -235,13 +235,16 @@ app.post ('/api/reviews', async (req, res) => {
             .single();
 
         if (orderError || !order) {
+            console.error("주문 조회 실패:", orderError); //디버깅용
             return res.status(403).json({ error: "주문 내역을 찾을 수 없습니다." });
         }
 
-        const hasProduct = order?.items?.some(item => String(item.id || item.product_id) === String(productId)); 
+        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
 
-        if (!hasProduct || orderError) {
-            return res.status(403).json({ error: "실제 구매한 상품만 리뷰 작성이 가능합니다."});
+        const hasProduct = items?.some(item => String(item.product_id) === String(productId)) || String(item.id) === String(productId); 
+
+        if (!hasProduct) {
+            return res.status(403).json({ error: "해당 주문에 상품이 포함되어 있지 않습니다."});
         }
 
         // 이미 리뷰를 작성했는지 확인 (중복 작성 방지)
@@ -271,7 +274,8 @@ app.post ('/api/reviews', async (req, res) => {
 
             res.json({ message: "리뷰가 등록되었습니다." });
     } catch (err) {
-        res.status(500).json({ error: "서버 오류" });
+        console.error("서버 내부 오류:", err);
+        res.status(500).json({ error: "서버 오류가 발생했습니다." });
     }
 });
 
