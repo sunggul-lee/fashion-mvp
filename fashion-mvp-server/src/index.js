@@ -239,6 +239,8 @@ app.post ('/api/reviews', async (req, res) => {
             return res.status(403).json({ error: "주문 내역을 찾을 수 없습니다." });
         }
 
+        console.log("주문데이터:", order) // 디버깅용
+
         const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
 
         const hasProduct = items?.some(item => String(item.product_id) === String(productId)) || String(item.id) === String(productId); 
@@ -262,12 +264,12 @@ app.post ('/api/reviews', async (req, res) => {
             // 리뷰 등록
             const { error: insertError } = await supabase
                 .from('review')
-                .insert([{ 
+                .insert([{
+                    id: orderId,
                     product_id: productId, 
                     user_id: userId, 
                     rating: Number(rating), 
-                    content, 
-                    order_id: orderId 
+                    content
                 }]);
 
             if (insertError) throw insertError;
