@@ -234,6 +234,10 @@ app.post ('/api/reviews', async (req, res) => {
             .eq('user_id', userId)
             .single();
 
+        if (orderError || !order) {
+            return res.status(403).json({ error: "주문 내역을 찾을 수 없습니다." });
+        }
+
         const hasProduct = order?.items?.some(item => String(item.product_id) === String(productId)); 
 
         if (!hasProduct || orderError) {
