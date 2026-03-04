@@ -86,7 +86,7 @@ app.get('/api/products', async (req, res) => {
 
             return {
                 ...product,
-                avgRaing: parseFloat(avgRating),
+                avgRating: parseFloat(avgRating),
                 reviewCount: reviewCount,
                 reviews: undefined // 데이터 전송 최적화를 위해 원본 리뷰 배열은 제거
             };
@@ -238,7 +238,7 @@ app.post ('/api/reviews', async (req, res) => {
             return res.status(403).json({ error: "주문 내역을 찾을 수 없습니다." });
         }
 
-        const hasProduct = order?.items?.some(item => String(item.product_id) === String(productId)); 
+        const hasProduct = order?.items?.some(item => String(item.id) === String(productId)); 
 
         if (!hasProduct || orderError) {
             return res.status(403).json({ error: "실제 구매한 상품만 리뷰 작성이 가능합니다."});
