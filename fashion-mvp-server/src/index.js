@@ -265,11 +265,11 @@ app.post ('/api/reviews', async (req, res) => {
             const { error: insertError } = await supabase
                 .from('review')
                 .insert([{
-                    id: orderId,
                     product_id: productId, 
                     user_id: userId, 
                     rating: Number(rating), 
-                    content
+                    content,
+                    order_id: orderId
                 }]);
 
             if (insertError) throw insertError;
