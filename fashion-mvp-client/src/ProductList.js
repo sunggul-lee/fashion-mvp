@@ -174,6 +174,17 @@ function ProductList({ session }) {
                       <div style={{ marginTop: '10px' }}>
                           <span style={{ fontSize: '12px', color: '#888' }}>{product.category}</span>
                           <h3 style={{ fontSize: '16px', margin: '5px 0', height: '40px', overflow: 'hidden' }}>{product.name}</h3>
+
+                          {/* --- [추가] 평점 및 리뷰 수 UI --- */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '5px' }}>
+                            <span style={{ color: '##ffc107', frontSize: '14px' }}>★</span>
+                            <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
+                              {product.avgRating || "0.0"}
+                            </span>
+                            <span style={{ fontSize: '13px', color: '#888' }}>
+                              ({product.reviewCount?.toLocaleString() || 0})
+                            </span>
+                          </div>
                           <p style={{ fontWeight: 'bold', color: '#333' }}>{product.price?.toLocaleString()}원</p>
                       </div>
                     </div>

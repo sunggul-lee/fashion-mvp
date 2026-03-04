@@ -229,7 +229,7 @@ app.post ('/api/reviews', async (req, res) => {
         // 해당 유저가 이 상품을 구매한 내역(order)이 있는지 확인
         const { data: order, error: orderError } = await supabaseAdmin
             .from('orders')
-            .select('id', 'items')
+            .select('id, items')
             .eq('id', orderId)
             .eq('user_id', userId)
             .single();
@@ -238,7 +238,7 @@ app.post ('/api/reviews', async (req, res) => {
             return res.status(403).json({ error: "주문 내역을 찾을 수 없습니다." });
         }
 
-        const hasProduct = order?.items?.some(item => String(item.id) === String(productId)); 
+        const hasProduct = order?.items?.some(item => String(item.id || item.product_id) === String(productId)); 
 
         if (!hasProduct || orderError) {
             return res.status(403).json({ error: "실제 구매한 상품만 리뷰 작성이 가능합니다."});
