@@ -5,7 +5,12 @@ import { useNavigate } from 'react-router-dom';
 function MyPage({ session}) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [reviewForm, setReviewForm] = useState(false);
+    const [reviewForm, setReviewForm] = useState({
+        orderId: null,
+        productId: null,
+        rating: 5,
+        content: ''
+    });
     const navigate = useNavigate();
 
 

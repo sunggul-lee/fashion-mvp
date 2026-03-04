@@ -229,7 +229,7 @@ app.post ('/api/reviews', async (req, res) => {
         // 해당 유저가 이 상품을 구매한 내역(order)이 있는지 확인
         const { data: order, error: orderError } = await supabaseAdmin
             .from('orders')
-            .select('id')
+            .select('id', 'items')
             .eq('id', orderId)
             .eq('user_id', userId)
             .single();
