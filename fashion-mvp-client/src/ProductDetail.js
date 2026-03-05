@@ -109,7 +109,7 @@ function ProductDetail({ session, onCartUpdate }) {
             {/* --- [추가] 하단 상세 설명 및 리뷰 섹션 --- */}
             <div style={{ marginTop: '50px', borderTop: '2px solid #eee', paddingTop: '30px'}}>
                 <h3 style={{ marginBottom: '20px' }}>상품 상세 설명</h3>
-                <p style={{ color: '#666', lineHeight: '1.6'}}>
+                <p style={{ color: '#666', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
                     {product.description || "상품 상세 설명이 없습니다."}
                 </p>
 
@@ -121,7 +121,7 @@ function ProductDetail({ session, onCartUpdate }) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {product.reviews.map((review, idx) => (
                             <div key={idx} style={{ padding: '20px', border: '1px solid #eee', borderRadius: '10px' }}>
-                                <div style={{ marginBottom :'10px'}}
+                                <div style={{ marginBottom :'10px', display: 'flex', justifyContent: 'space-between'}}>
                                     <span style={{ color: '#ffc107' }}>
                                         {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                     </span>

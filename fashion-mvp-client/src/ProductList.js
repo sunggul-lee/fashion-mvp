@@ -105,7 +105,7 @@ function ProductList({ session }) {
             placeholder="상품명 검색..."
             value={filters.keyword}
             onChange={handleFilterChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', flex: '1', minWidth: '200px' }}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', flex: 1, minWidth: '200px' }}
           />
 
           <select name="category" value={filters.category} onChange={handleFilterChange} style={selectStyle}>
@@ -177,7 +177,7 @@ function ProductList({ session }) {
 
                           {/* --- [추가] 평점 및 리뷰 수 UI --- */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '5px' }}>
-                            <span style={{ color: '##ffc107', frontSize: '14px' }}>★</span>
+                            <span style={{ color: '#ffc107', fontSize: '14px' }}>★</span>
                             <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
                               {product.avgRating || "0.0"}
                             </span>
@@ -207,8 +207,8 @@ function ProductList({ session }) {
                     disabled={filters.page === 1}
                     style={{
                       ...paginationButtonStyle,
-                      cursor: filters.page === 1 ? 'not-allowed' : 'pointer',
-                      opacity: filters.page === 1 ? 0.5 : 1,
+                      cursor: filters.page === totalPages ? 'not-allowed' : 'pointer',
+                      opacity: filters.page === totalPages ? 0.5 : 1,
                       backgroundColor: '#eee'
                     }}
                   >
