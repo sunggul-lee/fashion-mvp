@@ -129,12 +129,32 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin
             .from('orders')
-            .select('*')
+            .select(`
+                *,
+                review (
+                    product_id,
+                    order_id
+                )
+            `)
             .eq('user_id', req.user.id)
             .order('created_at', { ascending: false });
 
             if (error) throw error;
-            res.json({ success: true, orders: data });
+
+            const ordersWithReviewStatus = orders.map(order => {
+                const reviewedProductIds = order.review ? order.review.map(r => String(r.product_id)) : [];
+
+                return {
+                    ...order,
+                    items: order.items.map(item => ({
+                        ...item,
+                        isReviewed: reviewedProductIds.iscludes(String(item.id || item.product_id))
+                    })),
+                    review: undefined
+                };
+            });
+
+            res.json({ success: true, orders: ordersWithReviewStatus });
         } catch (error) {
                 console.error("서버 에러:", error);
                 res.status(500).json({ success: false, message: error.message });

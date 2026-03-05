@@ -134,21 +134,39 @@ function MyPage({ session}) {
                             </div>
 
                             <div style={{ padding: '15px' }}>
-                                    {order.items?.map((item, index) => (
+                                    {order.items?.map((item, index) => {
+                                        const isReviewed = item.is_reviewed;
+
                                         <div key={index} style={{ marginBottom: '15px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span>{item.name} x {item.quantity}개 ({(item.price * item.quantity).toLocaleString()}원)</span>
  
                                             {order.status === 'completed' && (
-                                                <button
-                                                    onClick={() => setReviewForm({ ...reviewForm, orderId: order.id, 
-                                                    productId: item.id })}
-                                                    style={reviewOpenButtonStyle}
-                                                >
-                                                    리뷰 쓰기
-                                                </button>
+                                                item.isReviewed ? (
+                                                    <span style={{
+                                                        fontSize: '0.8rem',
+                                                        color: '#28a745',
+                                                        fontWeight: 'bold',
+                                                        padding: '5px 12px',
+                                                        border: '1px solid #28a745',
+                                                        borderRadius: '4px'
+                                                    }}>
+                                                        ✓ 리뷰 작성 완료
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setReviewForm({
+                                                            ...reviewForm, 
+                                                            orderId: order.id, 
+                                                            productId: item.id
+                                                        })}
+                                                        style={reviewOpenButtonStyle}
+                                                    >
+                                                        리뷰 쓰기
+                                                    </button>
+                                                )                           
                                             )}
-                                            </div>
+                                        </div>
 
                                     {reviewForm.orderId === order.id && reviewForm.productId === item.id && (
                                         <div style={reviewFormContainerStyle}>
@@ -184,7 +202,7 @@ function MyPage({ session}) {
                                     </div>
                                     )}
                                 </div>
-                                ))}
+                            })}
 
                             <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '15px 0' }} />
                             <div style={{ textAlign: 'right' }}>
