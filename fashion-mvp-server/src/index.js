@@ -113,7 +113,7 @@ app.get('/api/products/:id', async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('products')
-            .select('*')
+            .select('*, review(*)')
             .eq('id', id)
             .single();
 

@@ -142,7 +142,7 @@ function MyPage({ session}) {
                                             {order.status === 'completed' && (
                                                 <button
                                                     onClick={() => setReviewForm({ ...reviewForm, orderId: order.id, 
-                                                    productId: item.product_id })}
+                                                    productId: item.id })}
                                                     style={reviewOpenButtonStyle}
                                                 >
                                                     리뷰 쓰기
@@ -150,7 +150,7 @@ function MyPage({ session}) {
                                             )}
                                             </div>
 
-                                    {reviewForm.orderId === order.id && reviewForm.productId === item.product_id && (
+                                    {reviewForm.orderId === order.id && reviewForm.productId === item.id && (
                                         <div style={reviewFormContainerStyle}>
                                             <div style={{ marginBottom: '10px' }}>
                                             {[1, 2, 3, 4, 5].map(num => (
