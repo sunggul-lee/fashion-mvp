@@ -127,7 +127,7 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
-        const { data: rawOrdders, error } = await supabaseAdmin
+        const { data: rawOrders, error } = await supabaseAdmin
             .from('orders')
             .select(`
                 *,
@@ -140,6 +140,8 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
             .order('created_at', { ascending: false });
 
             if (error) throw error;
+
+            if (!rawOrders) return res.json({ success: true, orders: []});
 
             const processedOrders = rawOrders.map(order => ({
                 ...order,
