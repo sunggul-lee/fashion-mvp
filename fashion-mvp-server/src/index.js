@@ -245,7 +245,10 @@ app.post ('/api/reviews', async (req, res) => {
 
         const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
 
-        const hasProduct = items?.some(item => String(item.product_id) === String(productId)) || String(item.id) === String(productId); 
+        const hasProduct = items?.some(item => 
+            String(item.product_id) === String(productId) || 
+            String(item.id) === String(productId)
+        );
 
         if (!hasProduct) {
             return res.status(403).json({ error: "해당 주문에 상품이 포함되어 있지 않습니다."});
