@@ -80,6 +80,8 @@ app.get('/api/products', async (req, res) => {
         if (error) throw error;
 
         const productWithStats = data.map(product => {
+            console.log(data[0]);
+
             const reviewCount = product.review ? product.review.length : 0;
             const totalRating = product.review ? product.review.reduce((sum, r) => sum + r.rating, 0) : 0;
             const avgRating = reviewCount > 0 ? (totalRating / reviewCount).toFixed(1) : "0.0";

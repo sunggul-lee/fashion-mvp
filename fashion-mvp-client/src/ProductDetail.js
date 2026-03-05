@@ -20,9 +20,9 @@ function ProductDetail({ session, onCartUpdate }) {
 
     if (!product) return <div style={{ padding: '20px' }}>로딩 중...</div>;
 
-    const reviewCount = product.reviews ? product.reviews.length : 0;
+    const reviewCount = product.review ? product.review.length : 0;
     const avgRating = reviewCount > 0
-        ? (product.reviews.reduce((acc, cur) => acc + cur.rating, 0) / reviewCount).toFixed(1)
+        ? (product.review.reduce((acc, cur) => acc + cur.rating, 0) / reviewCount).toFixed(1)
         : "0.0";
 
 
@@ -119,7 +119,7 @@ function ProductDetail({ session, onCartUpdate }) {
 
                 {reviewCount > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {product.reviews.map((review, idx) => (
+                        {product.review.map((review, idx) => (
                             <div key={idx} style={{ padding: '20px', border: '1px solid #eee', borderRadius: '10px' }}>
                                 <div style={{ marginBottom :'10px', display: 'flex', justifyContent: 'space-between'}}>
                                     <span style={{ color: '#ffc107' }}>
