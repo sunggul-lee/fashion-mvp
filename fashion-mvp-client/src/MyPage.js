@@ -135,8 +135,7 @@ function MyPage({ session}) {
 
                             <div style={{ padding: '15px' }}>
                                     {order.items?.map((item, index) => {
-                                        const isReviewed = item.is_reviewed;
-
+                                        return (
                                         <div key={index} style={{ marginBottom: '15px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span>{item.name} x {item.quantity}개 ({(item.price * item.quantity).toLocaleString()}원)</span>
@@ -202,6 +201,7 @@ function MyPage({ session}) {
                                     </div>
                                     )}
                                 </div>
+                                );
                             })}
 
                             <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '15px 0' }} />

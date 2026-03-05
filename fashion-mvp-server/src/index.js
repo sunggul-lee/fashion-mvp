@@ -127,7 +127,7 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
-        const { data, error } = await supabaseAdmin
+        const { data: rawOrdders, error } = await supabaseAdmin
             .from('orders')
             .select(`
                 *,
@@ -141,20 +141,15 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
 
             if (error) throw error;
 
-            const ordersWithReviewStatus = orders.map(order => {
-                const reviewedProductIds = order.review ? order.review.map(r => String(r.product_id)) : [];
+            const processedOrders = rawOrders.map(order => ({
+                ...order,
+                items: order.items.map(item => ({
+                    ...item,
+                    isReviewed: order.review?.some(r => String(r.product_id) === String(item.id)) || false
+                }))
+            }));
 
-                return {
-                    ...order,
-                    items: order.items.map(item => ({
-                        ...item,
-                        isReviewed: reviewedProductIds.iscludes(String(item.id || item.product_id))
-                    })),
-                    review: undefined
-                };
-            });
-
-            res.json({ success: true, orders: ordersWithReviewStatus });
+            res.json({ success: true, orders: processedOrders });
         } catch (error) {
                 console.error("서버 에러:", error);
                 res.status(500).json({ success: false, message: error.message });
