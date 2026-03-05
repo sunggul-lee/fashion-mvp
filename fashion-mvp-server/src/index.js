@@ -139,7 +139,10 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
             .eq('user_id', req.user.id)
             .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase 조회 에러:", error);
+                throw error;
+            }
 
             if (!rawOrders) return res.json({ success: true, orders: []});
 
