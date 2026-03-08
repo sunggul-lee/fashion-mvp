@@ -33,7 +33,10 @@ function Admin({ session }) {
                         {activeTab === 'products' && <ProductManagement />}
                         {activeTab === 'orders' && <OrderManagement />}
                         {activeTab === 'banners' && (
-                            <AdminBannersForm session={session} />
+                            <div style={{ border: '5px solid red', padding: '20px' }}>
+                                <h2>여기가 배너 탭입니다!</h2>
+                                <AdminBannersForm session={session} />
+                            </div>
                         )}
                 </main>
             </div>
