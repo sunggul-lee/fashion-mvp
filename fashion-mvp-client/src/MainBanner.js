@@ -49,7 +49,7 @@ function MainBanner() {
                         <div
                             style={{
                                 ...slideItemStyle,
-                                backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${banner.image_url})`                            
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.3)), url('${banner.image_url}')`                            
                             }}
 
                             onClick={() => banner.link_url && (window.location.href = banner.link_url)}
