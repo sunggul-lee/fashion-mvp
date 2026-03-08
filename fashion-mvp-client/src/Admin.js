@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
+import AdminBannersForm from './AdminBannerForm';
 
 function Admin({ session }) {
         const [activeTab, setActiveTab] = useState('products');
@@ -20,12 +21,20 @@ function Admin({ session }) {
                         onClick={() => setActiveTab('orders')}
                         style={tabStyle(activeTab === 'orders')}
                     >🛒 주문 관리</button>
+                    <button
+                        onClick={() => setActiveTab('banners')}
+                        style={tabStyle(activeTab === 'banners')}
+                    >🖼️ 배너 관리</button>
+
                 </div>
 
                 {/* 탭 내용 */}
                 <main>
                         {activeTab === 'products' && <ProductManagement />}
                         {activeTab === 'orders' && <OrderManagement />}
+                        {activeTab === 'banners' && (
+                            <AdminBannersForm session={session} />
+                        )}
                 </main>
             </div>
         );

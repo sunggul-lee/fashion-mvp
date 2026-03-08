@@ -460,7 +460,39 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
 });
 
 
+
+app.get('/api/banners', async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('main_banners')
+            .select('*')
+            .eq('is_active', true)
+            .order('priority', { ascending: true });
+
+        if (error) throw error;
+        res.json({ success: true, banners: data });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
 // --- 관리자 전용 API ---
+app.post('/api/admin/banners', authenticateUser, async (req, res) => {
+    try {
+        const { image_url, title, subtitle, link_url, priority } = req.body;
+        const { data, error } = await supabaseAdmin
+            .from('main_banners')
+            .insert([{ image_url, title, subtitle, link_url, priority }]);
+
+            if (error) throw error;
+            res.json({ success: true, message: "배너가 등록되었습니다." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
 app.get('/api/admin/orders', async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin
