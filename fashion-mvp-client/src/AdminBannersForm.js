@@ -74,7 +74,7 @@ function AdminBannersForm({ session }) {
                     ) : (
                         <div style={emptyPreviewStyle}>이미지를 선택하세요 (권장: 1920x600)</div>
                     )}
-                    <input type="file" accept="image/*" onChange={handleFileChange} style={{ maginTop: '10px' }} />
+                    <input type="file" accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
                 </div>
 
                 {/* 정보 입력 구역 */}
@@ -91,11 +91,11 @@ function AdminBannersForm({ session }) {
                     onChange={(e) => setFormData({...formData, link_url: e.target.value})} style={inputStyle}
                 />
                 <input
-                    type="text" placeholder="우선순위 (낮을수록 먼저 노출)" value={formData.priority}
+                    type="number" placeholder="우선순위 (낮을수록 먼저 노출)" value={formData.priority}
                     onChange={(e) => setFormData({...formData, priority: e.target.value})} style={inputStyle}
                 />
 
-                <button type="submit" diabled={loading} style={submitButtonStyle}>
+                <button type="submit" disabled={loading} style={submitButtonStyle}>
                     {loading ? "업로드 중..." : "배너 등록하기"}
                 </button>
             </form>
@@ -121,7 +121,7 @@ const uploadBoxStyle = {
     borderRadius: '4px'
 };
 
-const imagePreviewStyle = {wideth: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px' };
+const imagePreviewStyle = {width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px' };
 
 const emptyPreviewStyle = {height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', backgroundColor: '#f9f9f9' };
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
-import AdminBannersForm from './AdminBannerForm';
+import AdminBannersForm from './AdminBannersForm';
 
 function Admin({ session }) {
         const [activeTab, setActiveTab] = useState('products');
