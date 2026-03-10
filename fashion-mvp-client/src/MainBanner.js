@@ -96,6 +96,7 @@ const contentBoxStyle = {
 };
 
 const titleStyle = {
+    color: '#fff',
     fontSize: '3rem',
     marginBottom: '15px',
     fontWeight: 'bold',
@@ -103,6 +104,7 @@ const titleStyle = {
 };
 
 const subtitleStyle = {
+    color: '#fff',
     fontSize: '1.5rem',
     marginBottom: '30px',
     opacity: 0.9,
