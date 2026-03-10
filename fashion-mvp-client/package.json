@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@tosspayments/payment-sdk": "^1.9.2",
     "axios": "^1.13.4",
+    "browser-image-compression": "^2.0.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.0",

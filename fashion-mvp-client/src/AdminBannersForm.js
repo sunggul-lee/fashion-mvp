@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { optimizeAndUpload } from '../utils/imageOptimizer';
 import { supabase } from './supabaseClient';
 
 function AdminBannersForm({ session }) {
@@ -28,19 +29,7 @@ function AdminBannersForm({ session }) {
 
         setLoading(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `banner_${Date.now()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage
-                .from('banners')
-                .upload(fileName, file);
-            
-            if (uploadError) throw uploadError;
-
-            const { data: urlData } = supabase.storage
-                .from('banners')
-                .getPublicUrl(fileName);
-
-            const imageUrl = urlData.publicUrl;
+            const imageUrl = await optimizeAndUpload(file, 'banners');
 
             const token = session.access_token;
             await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/admin/banners`, {
