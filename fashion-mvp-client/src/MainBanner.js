@@ -24,8 +24,8 @@ function MainBanner() {
             } finally {
                 setLoading(false);
             }
-            fetchBanners();
         }
+        fetchBanners();
     }, []);
 
     if (loading) return <div style={{ height: '500px', background: '#f0f0f0' }} />;
