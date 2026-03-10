@@ -210,8 +210,8 @@ function ProductList({ session }) {
                       disabled={filters.page === 1}
                       style={{
                         ...paginationButtonStyle,
-                        cursor: filters.page === totalPages ? 'not-allowed' : 'pointer',
-                        opacity: filters.page === totalPages ? 0.5 : 1,
+                        cursor: filters.page === 1 ? 'not-allowed' : 'pointer',
+                        opacity: filters.page === 1 ? 0.5 : 1,
                         backgroundColor: '#eee'
                       }}
                     >
@@ -239,8 +239,8 @@ function ProductList({ session }) {
                       disabled={filters.page === totalPages}
                       style={{
                         ...paginationButtonStyle,
-                        cursor: filters.page === 1 ? 'not-allowed' : 'pointer',
-                        opacity: filters.page === 1 ? 0.5 : 1,
+                        cursor: filters.page === totalPages ? 'not-allowed' : 'pointer',
+                        opacity: filters.page === totalPages ? 0.5 : 1,
                         backgroundColor: '#eee'
                       }}
                     >
