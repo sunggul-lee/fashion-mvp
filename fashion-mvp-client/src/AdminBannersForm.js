@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { optimizeAndUpload } from '../utils/imageOptimizer';
-import { supabase } from './supabaseClient';
+import { optimizeAndUpload } from './imageOptimizer';
 
 function AdminBannersForm({ session }) {
     const [file, setFile] = useState(null);
