@@ -11,6 +11,7 @@ function ProductList({ session }) {
   const [wishlistIds, setWishlistIds] = useState([]); // 찜한 상품 ID만 관리 (속도 최적화)
 
   const [popularKeywords, setPopularKeywords] = useState([]);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     const fetchPopularKeywords = async () => {
@@ -139,6 +140,8 @@ function ProductList({ session }) {
               placeholder="상품명 검색..."
               value={filters.keyword}
               onChange={handleFilterChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setTimeout(() => setIsFocused(false), 200)}
               style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', flex: 1, minWidth: '200px' }}
             />
 
@@ -158,24 +161,29 @@ function ProductList({ session }) {
           </div>
 
           {/* --- 인기 검색어 순위 리스트 레이아웃 --- */}
-          {popularKeywords.length > 0 && (
+          {isFocused && Array.isArray(popularKeywords) && popularKeywords.length > 0 && (
             <div style={{
-              backgroundColor: '#f8f9fa',
+              position: 'absolute',
+              zIndex: 100,
+              width: '100%',
+              maxWidth: '500px',
+              backgroundColor: 'fff',
               padding: '15px',
               borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #eee'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              border: '1px solid #eee',
+              marginTop: '5px'
             }}>
-              <h4 style={{ fontSize: '14px', color: '#333', marginBottom: '10px' }}>🔥 지금 많이 찾는 상품</h4>
+              <h4 style={{ fontSize: '14px', color: '#333', marginBottom: '10px' }}>🔥 실시간 인기 검색어</h4>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                gap: '10px'
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '8px'
               }}>
                 {popularKeywords.slice(0, 10).map((word, index) => (
                   <div
                     key={index}
-                    onClick={() => handlePopularClick(word)}
+                    onMouseDown={() => handlePopularClick(word)}
                     style={{
                       cursor: 'pointer',
                       fontSize: '14px',
@@ -185,7 +193,7 @@ function ProductList({ session }) {
                     }}
                   >
                     <span style={{ fontWeight: 'bold', color: '#ff4757', width: '20px' }}>{index + 1}.</span>
-                    <span style={{ color: '#555' }}>{word}</span>
+                    <span style={{ color: '#333' }}>{word}</span>
                   </div>
                 ))}
               </div>
