@@ -168,7 +168,6 @@ function ProductList({ session }) {
                 </div>
               </div>
             )}
-          </div>
 
           {/* --- 상품 리스트 영역 --- */}
           {loading ? (
@@ -295,6 +294,7 @@ function ProductList({ session }) {
             </>
           )}
         </div>
+     </div>
   );
 }
 
