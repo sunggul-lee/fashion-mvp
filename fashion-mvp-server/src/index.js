@@ -136,6 +136,27 @@ app.get('/api/popular-keywords', async (req, res) => {
     }
 });
 
+app.post('/api/search-log', async (req, res) => {
+    const { keyword } = req.body;
+
+    if (!keyword || !keyword.trim()) {
+        return res.status(400).json({ message: "키워드가 없습니다." });
+    }
+
+    try {
+        const { error } = await supabaseAdmin
+            .from('search_logs')
+            .insert([{ keyword: keyword.trim() }]);
+
+        if (error) throw error;
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error("로그 저장 실패:", error);
+        res.status(500).json({ message: "서버 오류" });
+    }
+});
+
 
 app.get('/api/products/:id', async (req, res) => {
     const { id } = req.params;
