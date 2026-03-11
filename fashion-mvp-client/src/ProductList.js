@@ -120,6 +120,7 @@ function ProductList({ session }) {
     };
 
 
+  console.log("현재 인기검색어 상태:", popularKeywords); // 디버깅
   return (
     <div className="product-list-container">
       <MainBanner />
@@ -156,13 +157,13 @@ function ProductList({ session }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '5px 2px' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#666' }}>인기:</span>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '5px' }}>
-                {popularKeywords.map((word, index) => (
+                {popularKeywords.map((item, index) => (
                   <button
                     key={index}
-                    onClick={() => handlePopularClick(word)}
+                    onClick={() => handlePopularClick(item.keyword || item)}
                     style={popularTagStyle}
                   >
-                    {word}
+                    {item.keyword || item}
                   </button>
                   ))}
                 </div>
