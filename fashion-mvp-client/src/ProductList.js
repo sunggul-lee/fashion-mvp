@@ -295,7 +295,6 @@ function ProductList({ session }) {
             </>
           )}
         </div>
-      </div>
   );
 }
 
