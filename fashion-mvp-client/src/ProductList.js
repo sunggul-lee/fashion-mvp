@@ -179,7 +179,7 @@ function ProductList({ session }) {
                       gap: '8px'
                     }}
                   >
-                    <span style={{ fontWeight: 'bold', color: '#ff4757', width: '20px' }}>{inde + 1}.</span>
+                    <span style={{ fontWeight: 'bold', color: '#ff4757', width: '20px' }}>{index + 1}.</span>
                     <span style={{ color: '#555' }}>{word}</span>
                   </div>
                 ))}
