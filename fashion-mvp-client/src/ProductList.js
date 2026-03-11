@@ -16,9 +16,14 @@ function ProductList({ session }) {
     const fetchPopularKeywords = async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/popular-keywords`);
-        setPopularKeywords(res.data);
+        if (res.data && Array.isArray(res.data)) {
+          setPopularKeywords(res.data);
+        } else {
+          setPopularKeywords([]);
+        }
       } catch (e) {
         console.error("인기 검색어 로드 실패", e);
+        setPopularKeywords([]);
       }
     };
     fetchPopularKeywords();
