@@ -314,4 +314,14 @@ const paginationButtonStyle = {
   transition: 'all 0.2s ease'
 };
 
+const popularTagStyle = {
+  backgroundColor: '#f1f3f5',
+  border: 'none',
+  borderRadius: '15px',
+  padding: '4px 12px',
+  fontSize: '12px',
+  cursor: 'pointer',
+  transition: 'background-color 0.2s'
+};
+
 export default ProductList;
