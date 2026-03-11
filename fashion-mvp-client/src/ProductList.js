@@ -169,10 +169,10 @@ function ProductList({ session }) {
               <h4 style={{ fontSize: '14px', color: '#333', marginBottom: '10px' }}>🔥 지금 많이 찾는 상품</h4>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-FileList, minmax(150px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
                 gap: '10px'
               }}>
-                {popularKeywords.slice.apply(0, 10).map((word, index) => (
+                {popularKeywords.slice(0, 10).map((word, index) => (
                   <div
                     key={index}
                     onClick={() => handlePopularClick(word)}
