@@ -174,7 +174,13 @@ function ProductList({ session }) {
               border: '1px solid #eee',
               marginTop: '5px'
             }}>
-              <h4 style={{ fontSize: '14px', color: '#333', marginBottom: '10px' }}>🔥 실시간 인기 검색어</h4>
+              <h4 style={{ 
+                fontSize: '14px', 
+                color: '#222', 
+                marginBottom: '15px', 
+                borderBottm: '1px solid #f0f0f0', 
+                paddingBottom: '8px', 
+                fontWeight: 'bold' }}>🔥 실시간 인기 검색어</h4>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
