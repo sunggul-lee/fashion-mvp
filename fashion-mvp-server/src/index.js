@@ -106,32 +106,43 @@ app.get('/api/products', async (req, res) => {
 
 app.get('/api/popular-keywords', async (req, res) => {
 
-    const cacheKey = "popular_keywords";
-    const cachedData = myCache.get(cacheKey);
-    if (cachedData) return res.json(cachedData); // 캐시 있으면 즉시 반환
+    // const cacheKey = "popular_keywords";
+    // const cachedData = myCache.get(cacheKey);
+    // if (cachedData) return res.json(cachedData);
 
     try {
         const { data, error } = await supabaseAdmin
             .from('search_logs')
             .select('keyword')
-            .gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString());
+            .limit(500)
+            //.gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString());
         
         if (error) throw error;
 
         // 키워드별 개수 카운트
+        console.log("DB에서 가져온 원본 데이터 개수:", data?.length);
+
+        if (!data || data.length === 0) {
+            return res.status(200).json([]);
+        }
+
         const counts = data.reduce((acc, { keyword }) => {
             acc[keyword] = (acc[keyword] || 0) + 1;
             return acc;
         }, {});
 
-        const popular = Object.entries(counts)
+        const sortedKeywords = Object.entries(counts)
             .sort(([, a], [, b]) => b - a)
             .slice(0, 10)
             .map(([keyword]) => keyword);
 
-        myCache.set(cacheKey, popular);
-        res.json(popular);
+        console.log("최종 정렬된 키워드:", sortedKeywords)
+
+       // myCache.set(cacheKey, popular)
+        res.status(200).json(sortedKeywords);
+   
     } catch (err) {
+        console.error("인기 검색어 API 내부 오류:", err);
         res.status(500).json({ error: "인기 검색어 로드 실패" });
     }
 });
