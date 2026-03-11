@@ -152,23 +152,40 @@ function ProductList({ session }) {
             </select>
           </div>
 
-          {/* --- 인기 검색어 UI 레이아웃 --- */}
+          {/* --- 인기 검색어 순위 리스트 레이아웃 --- */}
           {popularKeywords.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '5px 2px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#666' }}>인기:</span>
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '5px' }}>
-                {popularKeywords.map((item, index) => (
-                  <button
+            <div style={{
+              backgroundColor: '#f8f9fa',
+              padding: '15px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              border: '1px solid #eee'
+            }}>
+              <h4 style={{ fontSize: '14px', color: '#333', marginBottom: '10px' }}>🔥 지금 많이 찾는 상품</h4>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-FileList, minmax(150px, 1fr))',
+                gap: '10px'
+              }}>
+                {popularKeywords.slice.apply(0, 10).map((word, index) => (
+                  <div
                     key={index}
-                    onClick={() => handlePopularClick(item.keyword || item)}
-                    style={popularTagStyle}
+                    onClick={() => handlePopularClick(word)}
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
                   >
-                    {item.keyword || item}
-                  </button>
-                  ))}
-                </div>
+                    <span style={{ fontWeight: 'bold', color: '#ff4757', width: '20px' }}>{inde + 1}.</span>
+                    <span style={{ color: '#555' }}>{word}</span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
           {/* --- 상품 리스트 영역 --- */}
           {loading ? (
