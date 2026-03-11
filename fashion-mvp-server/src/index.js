@@ -4,6 +4,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { createClient } = require('@supabase/supabase-js');
 const { count } = require('yargs');
+const NodeCache = require('node-cache');
+const myCache = new NodeCache({ stdTTL: 3600 }); // 1시간 캐시
 
 dotenv.config();
 
@@ -19,11 +21,6 @@ app.use(cors({
 }));
 
 console.log("URL 연결확인:",process.env.SUPABASE_URL);
-
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-);
 
 const supabaseAdmin = createClient(
     process.env.SUPABASE_URL,
@@ -53,7 +50,7 @@ app.get('/api/products', async (req, res) => {
     const offset = (page - 1) * limit;
 
     try {
-        let query = supabase.from('products').select(`*, review( rating )`, { count: 'exact' });
+        let query = supabaseAdmin.from('products').select(`*, review( rating )`, { count: 'exact' });
 
         // 카테고리 필터 (전체가 아닐 때만)
         if (category && category !== '전체') {
@@ -107,11 +104,44 @@ app.get('/api/products', async (req, res) => {
         }
 });
 
+app.get('/api/popular-keywords', async (req, res) => {
+
+    const cacheKey = "popular_keywords";
+    const cachedData = myCache.get(cacheKey);
+    if (cachedData) return res.json(cachedData); // 캐시 있으면 즉시 반환
+
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('search_logs')
+            .select('keyword')
+            .gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString());
+        
+        if (error) throw error;
+
+        // 키워드별 개수 카운트
+        const counts = data.reduce((acc, { keyword }) => {
+            acc[keyword] = (acc[keyword] || 0) + 1;
+            return acc;
+        }, {});
+
+        const popular = Object.entries(counts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 10)
+            .map(([keyword]) => keyword);
+
+        myCache.set(cacheKey, popular);
+        res.json(popular);
+    } catch (err) {
+        res.status(500).json({ error: "인기 검색어 로드 실패" });
+    }
+});
+
+
 app.get('/api/products/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('products')
             .select('*, review(*)')
             .eq('id', id)
@@ -166,7 +196,7 @@ app.get('/api/wishlist', async (req, res) => {
     const { userId } = req.query;
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('wishlist')
             .select(`
                 product_id,
@@ -198,7 +228,7 @@ app.post('/api/wishlist/toggle', async (req, res) => {
     }
 
     try {
-        const { data: existing } = await supabase
+        const { data: existing } = await supabaseAdmin
             .from('wishlist')
             .select('*')
             .eq('user_id', userId)
@@ -206,10 +236,10 @@ app.post('/api/wishlist/toggle', async (req, res) => {
             .maybeSingle();
 
         if (existing) {
-            await supabase.from('wishlist').delete().eq('id', existing.id);
+            await supabaseAdmin.from('wishlist').delete().eq('id', existing.id);
             return res.json({ action: 'removed' });
         } else {
-            await supabase.from('wishlist').insert([{ user_id: userId, product_id: productId }]);
+            await supabaseAdmin.from('wishlist').insert([{ user_id: userId, product_id: productId }]);
             return res.json({ action: 'added' });
         }
     } catch (err) {
@@ -231,7 +261,7 @@ app.post('/api/wishlist/merge', async (req, res) => {
             product_id: id
         }));
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .from('wishlist')
             .upsert(insertData, { onConflict: 'user_id, product_id' });
 
@@ -275,7 +305,7 @@ app.post ('/api/reviews', async (req, res) => {
         }
 
         // 이미 리뷰를 작성했는지 확인 (중복 작성 방지)
-        const { data: existingReview } = await supabase
+        const { data: existingReview } = await supabaseAdmin
             .from('review')
             .select('id')
             .eq('user_id', userId)
@@ -287,7 +317,7 @@ app.post ('/api/reviews', async (req, res) => {
             }
 
             // 리뷰 등록
-            const { error: insertError } = await supabase
+            const { error: insertError } = await supabaseAdmin
                 .from('review')
                 .insert([{
                     product_id: productId, 

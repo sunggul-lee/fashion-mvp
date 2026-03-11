@@ -1,5 +1,5 @@
 import imageCompression from 'browser-image-compression';
-import { supabase } from '../src/supabaseClient';
+import { supabase } from './supabaseClient';
 
 export const optimizeAndUpload = async (file, bucket = 'products') => {
     const options = {

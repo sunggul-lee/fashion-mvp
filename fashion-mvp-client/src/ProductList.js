@@ -8,8 +8,21 @@ import MainBanner from './MainBanner';
 function ProductList({ session }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [wishlistIds, setWishlistIds] = useState([]); // 찜한 상품 ID만 관리 (속도 최적화)
+
+  const [popularKeywords, setPopularKeywords] = useState([]);
+
+  useEffect(() => {
+    const fetchPopularKeywords = async () => {
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/popular-keywords`);
+        setPopularKeywords(res.data);
+      } catch (e) {
+        console.error("인기 검색어 로드 실패", e);
+      }
+    };
+    fetchPopularKeywords();
+  }, []);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -69,6 +82,14 @@ function ProductList({ session }) {
 
         setProducts(res.data.products || []);
         setTotalPages(res.data.totalPages || 1);
+
+        // 검색어가 있고, 첫 페이지일 때만 백엔드에 검색 로그 전송 (데이터 클렌징 포함)
+        if (filters.keyword.trim().length >= 2 && filters.page === 1) {
+          axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/search-log`, {
+            keyword: filters.keyword.trim()
+          }).catch(() => {}); // 로그 기록 실패 무음처리
+        }
+
       } catch (err) {
           console.error("제품 로드 실패", err);
           setProducts([]);
@@ -88,6 +109,10 @@ function ProductList({ session }) {
       const { name, value } = e.target;
       setFilters(prev => ({ ...prev, [name]: value, page: 1 }));
     };
+
+    const handlePopularClick = (word) => {
+      setFilters(prev => ({ ...prev, keyword: word, page: 1 }));
+    }
 
     const handlePageChange = (newPage) => {
       setFilters(prev => ({ ...prev, page: newPage }));
@@ -124,6 +149,25 @@ function ProductList({ session }) {
               <option value="price_asc">가격 낮은순</option>
               <option value="price_desc">가격 높은순</option>
             </select>
+          </div>
+
+          {/* --- 인기 검색어 UI 레이아웃 --- */}
+          {popularKeywords.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '5px 2px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#666' }}>인기:</span>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '5px' }}>
+                {popularKeywords.map((word, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handlePopularClick(word)}
+                    style={popularTagStyle}
+                  >
+                    {word}
+                  </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* --- 상품 리스트 영역 --- */}

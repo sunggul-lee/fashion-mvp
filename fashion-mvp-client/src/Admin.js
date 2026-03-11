@@ -7,7 +7,7 @@ function Admin({ session }) {
         const [activeTab, setActiveTab] = useState('products');
         
         return (
-            <div style={{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style= {{ padding: '30px', maxWidth: '1200px', margin: '0 auto' }}>
                 <h1>관리자 대시보드</h1>
                 <p style={{ color: '#666' }}>관리자: {session?.user?.email}</p>
 
