@@ -132,9 +132,12 @@ function ProductList({ session }) {
       <MainBanner />
       <div style={{ padding: '20px'}}>
           <h2>신상품 목록</h2>
+          
           {/* --- 필터 컨트롤러 영역 추가 --- */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <input
+            
+            <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+              <input
               name="keyword"
               type="text"
               placeholder="상품명 검색..."
@@ -142,9 +145,67 @@ function ProductList({ session }) {
               onChange={handleFilterChange}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', flex: 1, minWidth: '200px' }}
+              style={{ 
+                padding: '10px', 
+                borderRadius: '8px', 
+                border: '1px solid #ddd',
+                width: '100%',
+                boxSizing: 'border-box',
+                outline: 'none'
+              }}
             />
 
+          {/* --- 인기 검색어 순위 리스트 레이아웃 --- */}
+          {isFocused && Array.isArray(popularKeywords) && popularKeywords.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              backgroundColor: '#ffffff',
+              padding: '15px',
+              borderRadius: '8px',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+              border: '1px solid #eee',
+              marginTop: '8px'
+            }}>
+              <h4 style={{ 
+                fontSize: '14px', 
+                color: '#222', 
+                marginBottom: '12px', 
+                borderBottom: '1px solid #f0f0f0', 
+                paddingBottom: '8px', 
+                fontWeight: 'bold' 
+              }}>🔥 실시간 인기 검색어</h4>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr', // 2열 구조 유지
+                gap: '10px'
+              }}>
+                {popularKeywords.slice(0, 10).map((word, index) => (
+                  <div
+                    key={index}
+                    onMouseDown={() => handlePopularClick(word)}
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px 0'
+                    }}
+                  >
+                    <span style={{ fontWeight: 'bold', color: '#ff4757', width: '20px' }}>{index + 1}.</span>
+                    <span style={{ color: '#333' }}>{word}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+            
+            {/* 기존 select 영역 */}
             <select name="category" value={filters.category} onChange={handleFilterChange} style={selectStyle}>
               <option value="전체">전체</option>
               <option value="Top">상의</option>
@@ -160,51 +221,6 @@ function ProductList({ session }) {
             </select>
           </div>
 
-          {/* --- 인기 검색어 순위 리스트 레이아웃 --- */}
-          {isFocused && Array.isArray(popularKeywords) && popularKeywords.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              zIndex: 100,
-              width: '100%',
-              maxWidth: '500px',
-              backgroundColor: 'fff',
-              padding: '15px',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              border: '1px solid #eee',
-              marginTop: '5px'
-            }}>
-              <h4 style={{ 
-                fontSize: '14px', 
-                color: '#222', 
-                marginBottom: '15px', 
-                borderBottm: '1px solid #f0f0f0', 
-                paddingBottom: '8px', 
-                fontWeight: 'bold' }}>🔥 실시간 인기 검색어</h4>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '8px'
-              }}>
-                {popularKeywords.slice(0, 10).map((word, index) => (
-                  <div
-                    key={index}
-                    onMouseDown={() => handlePopularClick(word)}
-                    style={{
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <span style={{ fontWeight: 'bold', color: '#ff4757', width: '20px' }}>{index + 1}.</span>
-                    <span style={{ color: '#333' }}>{word}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* --- 상품 리스트 영역 --- */}
           {loading ? (
