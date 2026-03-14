@@ -541,12 +541,19 @@ app.get('/api/banners', async (req, res) => {
 
 // --- 관리자 전용 API ---
 app.post('/api/admin/coupons', async (req, res) => {
-    const { name, type, value, targetUserId, category } = req.body;
+    const { name, type, value, target_category, expires_at, min_order_amount, targetUserId } = req.body;
 
     try {
         const { data: master, error: mError } = await supabaseAdmin
             .from('coupon_master')
-            .insert([{ name, type, value, target_user_id: targetUserId, target_product_category: category }])
+            .insert([{ 
+                name, 
+                type, 
+                value, 
+                target_product_category: category,
+                expires_at,
+                min_order_amount: min_order_amount || 0
+             }])
             .select().single();
 
         if (mError) throw mError;
@@ -554,12 +561,47 @@ app.post('/api/admin/coupons', async (req, res) => {
         if (targetUserId) {
             await supabaseAdmin
                 .from('user_coupons')
-                .insert([{ user_id: targetUserId, coupon_id: master.id }]);
+                .insert([{ 
+                    user_id: targetUserId, 
+                    coupon_id: master.id,
+                    expires_at: expires_at
+                }]);
+            if (uError) throw uError;
         }
 
-        res.status(200).json({ message: "쿠폰 발급 완료" });
+        res.status(200).json({ success: true, message: "쿠폰 생성 및 발급 완료", coupon: master });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("쿠폰 생성 오류:", err.message)
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/admin/coupons', async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('coupon_master')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.status(200).json({ success: true, coupons: data });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/admin/coupons/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { error } = await supabaseAdmin
+            .from('coupon_master')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        res.status(200).json({ success: true, message: "쿠폰 삭제 완료" });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
