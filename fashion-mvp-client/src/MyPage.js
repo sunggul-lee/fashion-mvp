@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 function MyPage({ session}) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('orders');
+    const [coupons, setCoupons] = useState([]);
+
     const [reviewForm, setReviewForm] = useState({
         orderId: null,
         productId: null,
@@ -13,6 +16,23 @@ function MyPage({ session}) {
     });
     const navigate = useNavigate();
 
+    // 쿠폰 내역 가져오기
+    const fetchCoupons = useCallback(async () => {
+        if (!session?.access_token) return;
+        try {
+            setCoupons([
+                { id: 1, name: '신규 가입 감사 쿠폰', discount: '3,000원', expires_at: '2026-12-31', min_amount: '10,000원' },
+                { id: 2, name: '시즌 오프 10% 할인', discount: '10%', expires_at: '2026-06-30', min_amount: '0원' },
+            ])
+            /* const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/coupons`, {
+                headers: {Authorization: `Bearer ${session.access_token}` }
+            });
+            setCoupons(res.data.coupons);
+            */
+        } catch (error) {
+            console.error("쿠폰 로드 실패:", error.message);
+        }
+    }, [session?.access_token]);
 
     // 주문 내역 가져오기
     const fetchOrders = useCallback (async () => {
@@ -44,6 +64,7 @@ function MyPage({ session}) {
             return;
         }
         fetchOrders();
+        fetchCoupons();
     }, [session, navigate, fetchOrders]);
 
 
@@ -109,118 +130,185 @@ function MyPage({ session}) {
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <h2>마이페이지</h2>
-            <h3>나의 주문 내역 ({orders.length})</h3>
+            {/* [추가] 탭 메뉴 UI */}
+            <div style={tabContainerStyle}>
+                <button
+                    onClick={() => setActiveTab('orders')}
+                    style={{...tabButtonStyle, borderBottom: activeTab === 'orders' ? '3px solid #333' : 'none', fontWeight: activeTab === 'orders' ? 'bold' : 'normal'}}
+                >
+                    주문 내역 ({orders.length})
+                </button>   
+                <button
+                    onClick={() => setActiveTab('coupons')}
+                    style={{...tabButtonStyle, borderBottom: activeTab === 'coupons' ? '3px solid #333' : 'none', fontWeight: activeTab === 'coupons' ? 'bold' : 'normal'}}
+                >
+                    내 쿠폰함 ({coupons.length})
+                    </button>
+            </div>
 
-            {orders.length === 0 ? ( <p>최근 주문 내역이 없습니다.</p> ) : (
-                orders.map((order) => {
-                    const statusInfo = getStatusInfo(order.status); // 매핑 함수 호출
-                    return (
-                        <div key={order.id} style={orderCardStyle}>
-                            <div style={orderHeaderStyle}>
-                                <span>
-                                    주문일시: {new Date(order.created_at).toLocaleDateString()} (주문번호 {order.id.slice(0, 8)})
-                                </span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px'}}>
-                                    <span style={{ ...statusBadgeStyle, background: statusInfo.color }}>
-                                        {statusInfo.text}
-                                    </span>
-                                    {order.status === 'completed' && (
-                                        <button
-                                            onClick={() => handleCancelOrder(order.id)}
-                                            style={cancelButtonStyle}
-                                        >주문취소</button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div style={{ padding: '15px' }}>
-                                    {order.items?.map((item, index) => {
-                                        return (
-                                        <div key={index} style={{ marginBottom: '15px' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span>{item.name} x {item.quantity}개 ({(item.price * item.quantity).toLocaleString()}원)</span>
- 
+            {/* [수정] 탭 상태에 따른 조건부 렌더링 */}
+            {activeTab === 'orders' ? (
+                <section>
+                    {orders.length === 0 ? ( <p>최근 주문 내역이 없습니다.</p> ) : (
+                        orders.map((order) => {
+                            const statusInfo = getStatusInfo(order.status); // 매핑 함수 호출
+                            return (
+                                <div key={order.id} style={orderCardStyle}>
+                                    <div style={orderHeaderStyle}>
+                                        <span>
+                                            주문일시: {new Date(order.created_at).toLocaleDateString()} (주문번호 {order.id.slice(0, 8)})
+                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                            <span style={{ ...statusBadgeStyle, background: statusInfo.color }}>
+                                                {statusInfo.text}
+                                            </span>
                                             {order.status === 'completed' && (
-                                                item.isReviewed ? (
-                                                    <span style={{
-                                                        fontSize: '0.8rem',
-                                                        color: '#28a745',
-                                                        fontWeight: 'bold',
-                                                        padding: '5px 12px',
-                                                        border: '1px solid #28a745',
-                                                        borderRadius: '4px'
-                                                    }}>
-                                                        ✓ 리뷰 작성 완료
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setReviewForm({
-                                                            ...reviewForm, 
-                                                            orderId: order.id, 
-                                                            productId: item.id
-                                                        })}
-                                                        style={reviewOpenButtonStyle}
-                                                    >
-                                                        리뷰 쓰기
-                                                    </button>
-                                                )                           
+                                                <button
+                                                    onClick={() => handleCancelOrder(order.id)}
+                                                    style={cancelButtonStyle}
+                                                >주문취소</button>
                                             )}
                                         </div>
-
-                                    {reviewForm.orderId === order.id && reviewForm.productId === item.id && (
-                                        <div style={reviewFormContainerStyle}>
-                                            <div style={{ marginBottom: '10px' }}>
-                                            {[1, 2, 3, 4, 5].map(num => (
-                                                <span
-                                                    key={num}
-                                                    onClick={() => setReviewForm({...reviewForm, rating: num})}
-                                                    style={{ cursor: 'pointer', fontSize: '1.5rem', color: num <= reviewForm.rating? '#ffc107' : '#ddd', marginRight: '5px' }}
-                                                >★</span>
-                                            ))}
-                                            <span style={{ marginLeft: '10px', fontSize: '0.9rem', color: '#666' }}>{reviewForm.rating}점</span>
-                                            </div>
-                                        <textarea
-                                            style={{
-                                                ...reviewTextStyle,
-                                                color: '#333',
-                                                background: '#fff',
-                                                width: '100%',
-                                                minHeight: '100px',
-                                                padding: '10px',
-                                                fontSize: '14px',
-                                                border: '1px solid #ccc'
-                                            }}
-                                            placeholder="상품은 어떠셨나요? 솔직한 후기를 남겨주세요."
-                                            value={reviewForm.content}
-                                            onChange={(e) => setReviewForm({...reviewForm, content: e.target.value})}
-                                        />
-                                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                            <button onClick={handleReviewSubmit} style={submitButtonStyle}>등록하기</button>
-                                            <button onClick={() => setReviewForm({ orderId: null, productId: null, rating: 5, content: '' })} style={closeButtonStyle}>취소</button>
-                                        </div>
                                     </div>
-                                    )}
-                                </div>
-                                );
-                            })}
 
-                            <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '15px 0' }} />
-                            <div style={{ textAlign: 'right' }}>
-                                <span style={{ color: '#666', marginRight: '10px' }}>최종 금액</span>
-                                <strong style={{ fontSize: '1.2rem', color: '#333' }}>
-                                                    {order?.total_price?.toLocaleString()}원
-                                </strong>
+                                    <div style={{ padding: '15px' }}>
+                                            {order.items?.map((item, index) => {
+                                                return (
+                                                <div key={index} style={{ marginBottom: '15px' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span>{item.name} x {item.quantity}개 ({(item.price * item.quantity).toLocaleString()}원)</span>
+        
+                                                    {order.status === 'completed' && (
+                                                        item.isReviewed ? (
+                                                            <span style={{
+                                                                fontSize: '0.8rem',
+                                                                color: '#28a745',
+                                                                fontWeight: 'bold',
+                                                                padding: '5px 12px',
+                                                                border: '1px solid #28a745',
+                                                                borderRadius: '4px'
+                                                            }}>
+                                                                ✓ 리뷰 작성 완료
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setReviewForm({
+                                                                    ...reviewForm, 
+                                                                    orderId: order.id, 
+                                                                    productId: item.id
+                                                                })}
+                                                                style={reviewOpenButtonStyle}
+                                                            >
+                                                                리뷰 쓰기
+                                                            </button>
+                                                        )                           
+                                                    )}
+                                                </div>
+
+                                            {reviewForm.orderId === order.id && reviewForm.productId === item.id && (
+                                                <div style={reviewFormContainerStyle}>
+                                                    <div style={{ marginBottom: '10px' }}>
+                                                    {[1, 2, 3, 4, 5].map(num => (
+                                                        <span
+                                                            key={num}
+                                                            onClick={() => setReviewForm({...reviewForm, rating: num})}
+                                                            style={{ cursor: 'pointer', fontSize: '1.5rem', color: num <= reviewForm.rating? '#ffc107' : '#ddd', marginRight: '5px' }}
+                                                        >★</span>
+                                                    ))}
+                                                    <span style={{ marginLeft: '10px', fontSize: '0.9rem', color: '#666' }}>{reviewForm.rating}점</span>
+                                                    </div>
+                                                <textarea
+                                                    style={{
+                                                        ...reviewTextStyle,
+                                                        color: '#333',
+                                                        background: '#fff',
+                                                        width: '100%',
+                                                        minHeight: '100px',
+                                                        padding: '10px',
+                                                        fontSize: '14px',
+                                                        border: '1px solid #ccc'
+                                                    }}
+                                                    placeholder="상품은 어떠셨나요? 솔직한 후기를 남겨주세요."
+                                                    value={reviewForm.content}
+                                                    onChange={(e) => setReviewForm({...reviewForm, content: e.target.value})}
+                                                />
+                                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                                    <button onClick={handleReviewSubmit} style={submitButtonStyle}>등록하기</button>
+                                                    <button onClick={() => setReviewForm({ orderId: null, productId: null, rating: 5, content: '' })} style={closeButtonStyle}>취소</button>
+                                                </div>
+                                            </div>
+                                            )}
+                                        </div>
+                                        );
+                                    })}
+
+                                    <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '15px 0' }} />
+                                    <div style={{ textAlign: 'right' }}>
+                                        <span style={{ color: '#666', marginRight: '10px' }}>최종 금액</span>
+                                        <strong style={{ fontSize: '1.2rem', color: '#333' }}>
+                                                            {order?.total_price?.toLocaleString()}원
+                                        </strong>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    );
-                })
+                            );
+                        })
+                    )}
+                </section>
+            ) : (
+                /* 쿠폰함 렌더링 영역 */
+                <section>
+                    {coupons.length === 0 ? <p>사용 가능한 쿠폰이 없습니다.</p> : (
+                        coupons.map((coupon) => (
+                            <div key={coupon.id} style={couponCardStyle}>
+                                <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '0 0 5px 0' }}>{coupon.name}</h4>
+                                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+                                        {coupon.min_amount} 이상 구매 시 사용 가능
+                                    </p>
+                                    <small style={{ color: '#999' }}>유효기간: ~{coupon.expires_at}</small>
+                                </div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ff4d4f' }}>
+                                    {coupon.discount}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </section>
             )}
         </div>
     );
 }
 
 // 간단한 인라인 스타일
+const tabContainerStyle = {
+    display: 'flex',
+    gap: '20px',
+    marginBottom: '20px',
+    borderBottom: '1px solid #ddd'
+};
+
+const tabButtonStyle= {
+    padding: '10px 20px',
+    cursor: 'pointer',
+    background: 'none',
+    border: 'none',
+    fontSize: '1rem',
+    transition: 'all 0.2s'
+};
+
+const couponCardStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '20px',
+    border: '1px solid #eee',
+    borderRadius: '12px',
+    marginBottom: '10px',
+    background: '#fff',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+};
+
 const orderCardStyle = {
     border: '1px solid #ddd',
     borderRadius: '8px',

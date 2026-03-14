@@ -540,6 +540,30 @@ app.get('/api/banners', async (req, res) => {
 
 
 // --- 관리자 전용 API ---
+app.post('/api/admin/issue-coupon', async (req, res) => {
+    const { name, type, value, targetUserId, category } = req.body;
+
+    try {
+        const { data: master, error: mError } = await supabaseAdmin
+            .from('coupon_master')
+            .insert([{ name, type, value, target_user_id: targetUserId, target_product_category: category }])
+            .select().single();
+
+        if (mError) throw mError;
+
+        if (targetUserId) {
+            await supabaseAdmin
+                .from('user_coupons')
+                .insert([{ user_id: targetUserId, coupon_id: master.id }]);
+        }
+
+        res.status(200).json({ message: "쿠폰 발급 완료" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 app.post('/api/admin/banners', authenticateUser, async (req, res) => {
     try {
         const { image_url, title, subtitle, link_url, priority } = req.body;

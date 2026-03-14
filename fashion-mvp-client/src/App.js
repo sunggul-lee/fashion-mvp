@@ -110,8 +110,8 @@ function App() {
         </Link>
 
         {session && (
-          <Link to="/mypage" style={{ textDecoration: 'none', color: 'black' }}>
-            주문내역
+          <Link to="/mypage" style={{ textDecoration: 'none', color: 'black', fontWeight: 'bold' }}>
+            👤 마이페이지
           </Link>
         )}
 
