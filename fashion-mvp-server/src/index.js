@@ -540,7 +540,7 @@ app.get('/api/banners', async (req, res) => {
 
 
 // --- 관리자 전용 API ---
-app.post('/api/admin/issue-coupon', async (req, res) => {
+app.post('/api/admin/coupons', async (req, res) => {
     const { name, type, value, targetUserId, category } = req.body;
 
     try {

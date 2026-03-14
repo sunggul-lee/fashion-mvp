@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
 import AdminBannersForm from './AdminBannersForm';
+import CouponManagement from './CouponManagement';
 
 function Admin({ session }) {
         const [activeTab, setActiveTab] = useState('products');
@@ -25,6 +26,10 @@ function Admin({ session }) {
                         onClick={() => setActiveTab('banners')}
                         style={tabStyle(activeTab === 'banners')}
                     >🖼️ 배너 관리</button>
+                    <button
+                        onClick={() => setActiveTab('coupons')}
+                        style={tabStyle(activeTab === 'coupons')}
+                    >🎟️ 쿠폰 관리</button>
 
                 </div>
 
@@ -38,6 +43,7 @@ function Admin({ session }) {
                                 <AdminBannersForm session={session} />
                             </div>
                         )}
+                        {activeTab === 'coupons' && <CouponManagement session={session} />}
                 </main>
             </div>
         );
