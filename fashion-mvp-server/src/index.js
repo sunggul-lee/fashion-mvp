@@ -106,16 +106,15 @@ app.get('/api/products', async (req, res) => {
 
 app.get('/api/popular-keywords', async (req, res) => {
 
-    // const cacheKey = "popular_keywords";
-    // const cachedData = myCache.get(cacheKey);
-    // if (cachedData) return res.json(cachedData);
+    const cacheKey = "popular_keywords";
+    const cachedData = myCache.get(cacheKey);
+    if (cachedData) return res.json(cachedData);
 
     try {
         const { data, error } = await supabaseAdmin
             .from('search_logs')
             .select('keyword')
-            .limit(500)
-            //.gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString());
+            .gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString());
         
         if (error) throw error;
 
@@ -138,7 +137,7 @@ app.get('/api/popular-keywords', async (req, res) => {
 
         console.log("최종 정렬된 키워드:", sortedKeywords)
 
-       // myCache.set(cacheKey, popular)
+        myCache.set(cacheKey, popular)
         res.status(200).json(sortedKeywords);
    
     } catch (err) {
@@ -544,17 +543,23 @@ app.post('/api/admin/coupons', async (req, res) => {
     const { name, type, value, target_category, expires_at, min_order_amount, targetUserId } = req.body;
 
     try {
-        const { data: master, error: mError } = await supabaseAdmin
-            .from('coupon_master')
-            .insert([{ 
+        const insertData = {
                 name, 
                 type, 
-                value, 
-                target_product_category: category,
-                expires_at,
-                min_order_amount: min_order_amount || 0
-             }])
-            .select().single();
+                value: Number(value), 
+                target_product_category: target_category || null,
+                min_order_amount: Number(min_order_amount) || 0
+             };
+            
+            if (expires_at) {
+                insertData.expires_at = expires_at;
+            }
+
+        const { data: master, error: mError } = await supabaseAdmin
+            .from('coupon_master')
+            .insert([insertData])
+            .select()
+            .single();
 
         if (mError) throw mError;
 
@@ -564,7 +569,8 @@ app.post('/api/admin/coupons', async (req, res) => {
                 .insert([{ 
                     user_id: targetUserId, 
                     coupon_id: master.id,
-                    expires_at: expires_at
+                    expires_at: expires_at,
+                    is_used: false
                 }]);
             if (uError) throw uError;
         }
