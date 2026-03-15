@@ -29,20 +29,30 @@ function CouponManagement({ session }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/admin/coupons`, {
+            await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/admin/coupons`, newCoupon, {
                 headers: { Authorization: `Bearer ${session.access_token}` }
             });
             alert("쿠폰이 발행되었습니다.");
             setIsFormOpen(false);
+            setNewCoupon({
+                name: '',
+                type: 'fixed',
+                value: 0,
+                target_category: '',
+                min_order_amount: 0,
+                expires_at: ''
+            });
             fetchCoupons();
-        } catch (err) { alert("발행 실패"); }
+        } catch (err) { 
+            console.error(err);
+            alert("발행 실패: " + (err.response?.data?.error || "알 수 없는 오류")); }
     };
 
     // 쿠폰 삭제
     const handleDelete = async (id) => {
         if(!window.confirm("쿠폰을 삭제하시겠습니까?")) return;
         try {
-            await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/admin/coupons` , {
+            await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/admin/coupons/${id}`, {
                 headers: { Authorization: `Bearer ${session.access_token}` }
             });
             fetchCoupons();
@@ -65,11 +75,11 @@ function CouponManagement({ session }) {
             {isFormOpen && (
                 <form onSubmit={handleSubmit} style={formStyle}>
                     <input type="text" placeholder="쿠폰명" value={newCoupon.name} onChange={e => setNewCoupon({...newCoupon, name: e.target.value})} required style={inputStyle}/>
-                    <select value={newCoupon.type} onChagne={e => setNewCoupon({...newCoupon, type: e.target.value})} style={inputStyle}>
+                    <select value={newCoupon.type} onChange={e => setNewCoupon({...newCoupon, type: e.target.value})} style={inputStyle}>
                         <option value="fixed">금액 할인(원)</option>
                         <option value="percentage">비율 할인(%)</option>
                     </select>
-                    <input type="number" placeholder="할인 수치" value={newCoupon.value} onChange={e => setNewCoupon({...newCoupon, target_category: e.target.value})} style={inputStyle}/>
+                    <input type="number" placeholder="할인 수치" value={newCoupon.value} onChange={e => setNewCoupon({...newCoupon, value: Number(e.target.value)})} required style={inputStyle}/>
                     <input type="text" placeholder="적용 카테고리 (비어있으면 전체)" value={newCoupon.target_category} onChange={e => setNewCoupon({...newCoupon, target_category: e.target.value})} style={inputStyle}/>
                     <label>만료일: </label>
                     <input type="date" value={newCoupon.expires_at} onChange={e => setNewCoupon({...newCoupon, expires_at: e.target.value})} required style={inputStyle}/>
@@ -78,7 +88,7 @@ function CouponManagement({ session }) {
             )}
 
             {/* [List] 쿠폰 목록 테이블 */}
-            <table sytle={{ width: '100%', marginTop: '20px', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', marginTop: '20px', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #eee' }}>
                         <th style={thStyle}>쿠폰명</th>
