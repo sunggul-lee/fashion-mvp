@@ -117,8 +117,6 @@ function Cart({ session, onCartUpdate }) {
     };
 
     const discountPrice = calculateDiscount();
-    const finalPrice = totalPrice - discountPrice;
-
     
     return (
         <div style={{ padding: '20px' }}>
@@ -148,7 +146,6 @@ function Cart({ session, onCartUpdate }) {
                     <div style={{ marginTop: '30px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
                         <h4 style={{ marginBottom: '10px' }}>🎁 쿠폰 할인</h4>
 
-                        /* 1. 쿠폰이 있을 때: Select 박스 렌더링 */
                         {availableCoupons.length > 0 ? (
                             <div>
                                 <select
@@ -174,7 +171,6 @@ function Cart({ session, onCartUpdate }) {
                             </div>
                         ) : (
 
-                            /* 2. 쿠폰이 없을 때: 안내 문구 렌더링 */
                             <div style={{
                                 padding: '10px',
                                 textAlign: 'center',
