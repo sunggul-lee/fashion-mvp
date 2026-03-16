@@ -537,6 +537,57 @@ app.get('/api/banners', async (req, res) => {
     }
 });
 
+app.get('/api/coupons/available', async (req, res) => {
+    try {
+        const userId = req.user.id; // 인증 미들웨어를 통해 유저 ID 확보
+
+        // 유저에게 직접 할당된 쿠폰 조회 (user_coupons 테이블 기준)
+        const { data: userCoupons, error: uError } = await supabaseAdmin
+            .from('user_coupons')
+            .select(`
+                id,
+                is_used,
+                coupon_master (*)
+            `)
+            .eq('user_id', userId)
+            .eq('is_used', false);
+        
+        if (uError) throw uError;
+
+        // 전체 공개용 쿠폰 조회 (coupon_master 테이블에서 target_user_id가 null인 경우)
+        const now = new Date().toISOSString();
+        const { data: publicCoupons, error: pError } = await supabaseAdmin
+                .from('coupon_master')
+                .select('*')
+                .is('target_user_id', null) // 특정 유저 지정이 없는 공용 쿠폰
+                .gt('expires_at', now) // 유효기간이 지나지 않은 쿠폰만
+
+        if (pError) throw pError;
+
+        // 두 리스트를 통합하여 프론트에 전달하기 쉬운 형태로 포맷팅
+        // 개인 할당 쿠폰 정리
+        const userSpecificList = userCoupons.map(uc => ({
+            ...uc.coupon_master,
+            user_coupon_id: uc.id,
+            is_public: false
+        }));
+
+        // 공용 쿠폰 정리
+        const publicList = publicCoupons.map(pc => ({
+            ...pc,
+            user_coupon_id: null,
+            is_public: true
+        }))
+
+        const allAvailableCoupons = [...userSpecificList, ...publicList];
+
+        res.status(200).json({ success: true, couopons: allAvailableCoupons });
+    } catch (err) {
+        console.error("쿠폰 조회 에러:", err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 
 // --- 관리자 전용 API ---
 app.post('/api/admin/coupons', async (req, res) => {
