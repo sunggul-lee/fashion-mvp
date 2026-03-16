@@ -559,7 +559,7 @@ app.get('/api/coupons/available', authenticateUser, async (req, res) => {
         if (uError) throw uError;
 
         // 전체 공개용 쿠폰 조회 (coupon_master 테이블에서 target_user_id가 null인 경우)
-        const now = new Date().toISOSString();
+        const now = new Date().toISOString();
         const { data: publicCoupons, error: pError } = await supabaseAdmin
                 .from('coupon_master')
                 .select('*')
