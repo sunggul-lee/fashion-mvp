@@ -29,7 +29,8 @@ function Success ({ session, onCartReset }) {
                     orderId: searchParams.get('orderId'),
                     amount: searchParams.get('amount'),
                     cartItems: pendingData?.items || [],
-                    address: pendingData?.address || ""
+                    address: pendingData?.address || "",
+                    userCouponId: pendingData?.userCouponId || null
                 }, {
                     headers: {
                         Authorization: `Bearer ${token}`

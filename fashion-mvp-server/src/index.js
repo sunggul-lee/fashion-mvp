@@ -369,7 +369,7 @@ app.post ('/api/reviews', async (req, res) => {
 
 
 app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
-        const { paymentKey, orderId, amount, cartItems, address } = req.body;
+        const { paymentKey, orderId, amount, cartItems, address, userCouponId } = req.body;
         const user = req.user; // authenticateUser가 넣어준 정보
 
     try {
@@ -408,7 +408,7 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
         );
         
         if (response.status === 200) {
-            // [재고 차감] 각 상품의 재고를 구매 수량만큼 줄임
+            // 재고 차감
             for (const item of cartItems) {
                 const { error: rpcError } = await supabaseAdmin.rpc('decrement_stock', {
                     product_id: item.id,
@@ -419,7 +419,18 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
             }
         }
 
+            // 쿠폰 소모 처리
+            if (userCouponId) {
+                const { error: couponUpdateError } = await supabaseAdmin
+                    .from('user_coupons')
+                    .update({ is_used: true, used_at: new Date().toISOString() })
+                    .eq('id', userCouponid)
+                    .eq('user_id', user.id);
+                
+                if (couponUpdateError) console.error("❌ 쿠폰 소모 처리 실패:", couponUpdateError);
+            }
 
+            // 주문 정보 저장 (user_coupon_id 추가 기록)
             const { error: orderError } = await supabaseAdmin
                 .from('orders')
                 .insert([{ 
@@ -429,6 +440,7 @@ app.post('/api/payments/confirm', authenticateUser, async (req, res) => {
                     total_price: amount, 
                     address: address,
                     payment_key: paymentKey,
+                    used_coupon_id: userCouponId || null, // 나중에 환불 시 대조용
                     status: 'completed'
             }]);       
             if (orderError) {

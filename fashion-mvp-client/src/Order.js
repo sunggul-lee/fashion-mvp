@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { loadTossPayments } from '@tosspayments/payment-sdk';
 
@@ -7,6 +7,11 @@ function Order({ session }) {
     const [address, setAddress] = useState('');
     const [cartItems, setCartItems] = useState([]);
     const navigate = useNavigate();
+    const location = useLocation(); // 장바구니에서 보낸 데이터 받기 위함
+
+    // 장바구니에서 넘어온 쿠폰 및 최종 금액 정보 추출
+    const selectedCoupon = location.state?.selectedCoupon || null;
+    const finalPrice = location.state?.finalPrice || 0;
 
     useEffect (() => {
         const loadOrderItems = async () => {
@@ -29,6 +34,7 @@ function Order({ session }) {
         loadOrderItems();
     }, [session]);
 
+    // 기존 원금 계산
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
     const handleOrder = async (e) => {
@@ -36,7 +42,12 @@ function Order({ session }) {
         if (!session) return alert("로그인이 필요합니다.")
             
     try {
-        const pendingOrder = { items: cartItems, address: address };
+        // 결제 승인 시 필요한 쿠폰 ID를 보관하기 위해 pending_order에 추가
+        const pendingOrder = { 
+            items: cartItems, 
+            address: address,
+            userCouponId: selectedCoupon ? selectedCoupon.user_coupon_id : null
+        };
         localStorage.setItem('pending_order', JSON.stringify(pendingOrder));
 
         const orderId = `order_${Math.random().toString(36).slice(2, 9)}`;
@@ -45,7 +56,8 @@ function Order({ session }) {
         const tossPayments = await loadTossPayments(clientKey);
 
         await tossPayments.requestPayment('카드', {
-            amount: totalPrice,
+            // totalPrice가 아닌 할인 적용된 finalPrice를 결제 금액으로 전송
+            amount: selectedCoupon ? finalPrice: totalPrice,
             orderId: orderId,
             orderName: cartItems.length > 1
                 ? `${cartItems[0].name} 외 ${cartItems.length - 1}건`
@@ -74,7 +86,12 @@ function Order({ session }) {
                     <p key={item.id}>{item.name} x {item.quantity}</p>
                 ))}
                 <hr />
-                <h3>총 결제 금액: {totalPrice.toLocaleString()}원</h3>
+                {/* 할인 내역 표시 UI */}
+                <p>상품 총 금액: {totalPrice.toLocaleString()}원</p>
+                {selectedCoupon && (
+                    <p style={{ color: 'red' }}>쿠폰 할인: -{(totalPrice - finalPrice).toLocaleString()}원 ({selectedCoupon.name})</p>
+                )}
+                <h3>최종 결제 금액: {(selectedCoupon ? finalPrice : totalPrice).toLocaleString()}원</h3>
             </div>
 
             <form onSubmit={handleOrder}>
@@ -88,7 +105,7 @@ function Order({ session }) {
                 />
                 <br />
                 <button type="submit" style={{ padding: '10px 20px', background: '#000', color: '#fff'}}>
-                    결제하기
+                    { (selectedCoupon ? finalPrice : totalPrice).toLocaleString() }원 결제하기
                 </button>
             </form>
         </div>
