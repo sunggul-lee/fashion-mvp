@@ -137,7 +137,7 @@ app.get('/api/popular-keywords', async (req, res) => {
 
         console.log("최종 정렬된 키워드:", sortedKeywords)
 
-        myCache.set(cacheKey, popular)
+        myCache.set(cacheKey, sortedKeywords)
         res.status(200).json(sortedKeywords);
    
     } catch (err) {
@@ -511,7 +511,16 @@ app.post('/api/payments/cancel', authenticateUser, async (req, res) => {
                     }
                 }
             }
-    
+
+            // 쿠폰 복구 로직
+                if (order.used_coupon_id) {
+                    const { error: couponRestoreError } = await supabaseAdmin
+                        .from('user_coupons')
+                        .update({ is_used: false, used_at: null }) // 다시 사용 가능하도록 변경
+                        .eq('id', order.used_coupon_id);
+
+                    if (couponRestoreError) console.error("❌ 쿠폰 복구 실패:", couponRestoreError);
+                }
 
             // 주문 상태 변경
             const { error: updateError } = await supabaseAdmin
