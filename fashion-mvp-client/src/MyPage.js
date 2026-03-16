@@ -20,15 +20,11 @@ function MyPage({ session}) {
     const fetchCoupons = useCallback(async () => {
         if (!session?.access_token) return;
         try {
-            setCoupons([
-                { id: 1, name: '신규 가입 감사 쿠폰', discount: '3,000원', expires_at: '2026-12-31', min_amount: '10,000원' },
-                { id: 2, name: '시즌 오프 10% 할인', discount: '10%', expires_at: '2026-06-30', min_amount: '0원' },
-            ])
-            /* const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/coupons`, {
+            const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/coupons`, {
                 headers: {Authorization: `Bearer ${session.access_token}` }
             });
             setCoupons(res.data.coupons);
-            */
+            
         } catch (error) {
             console.error("쿠폰 로드 실패:", error.message);
         }
