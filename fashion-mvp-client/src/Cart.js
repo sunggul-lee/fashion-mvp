@@ -81,6 +81,7 @@ function Cart({ session, onCartUpdate }) {
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
 
+    // 장바구니 쿠폰 적용 기능
     const [availableCoupons, setAvailableCoupons] = useState([]);
     const [selectedCoupon, setSelectedCoupon] = useState(null);
 
@@ -146,7 +147,7 @@ function Cart({ session, onCartUpdate }) {
                     <div style={{ marginTop: '30px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
                         <h4 style={{ marginBottom: '10px' }}>🎁 쿠폰 할인</h4>
 
-                        {availableCoupons.length > 0 ? (
+                        {availableCoupons && availableCoupons.length > 0 ? (
                             <div>
                                 <select
                                     value={selectedCoupon?.id || ""}
@@ -203,7 +204,7 @@ function Cart({ session, onCartUpdate }) {
                          </h3>
 
                         <button 
-                            onClick={() => navigate('/order', { state: { selectedCoupon, finalPrice: totalPrice - discountPrice } })}
+                            onClick={() => navigate('/order', { state: { selectedCoupon: selectedCoupon, finalPrice: totalPrice - discountPrice } })}
                             style={{ 
                                 padding: '10px 30px', 
                                 background: 'black', 
