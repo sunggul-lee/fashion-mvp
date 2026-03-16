@@ -563,7 +563,7 @@ app.get('/api/coupons/available', authenticateUser, async (req, res) => {
         const { data: publicCoupons, error: pError } = await supabaseAdmin
                 .from('coupon_master')
                 .select('*')
-                .or(`target_user_id.is.null, target_user_id.eq.""`) // 특정 유저 지정이 없는 공용 쿠폰
+                .is('target_user_id', null) // 특정 유저 지정이 없는 공용 쿠폰
                 .gt('expires_at', now) // 유효기간이 지나지 않은 쿠폰만
 
         if (pError) throw pError;
@@ -595,7 +595,7 @@ app.get('/api/coupons/available', authenticateUser, async (req, res) => {
 
 // --- 관리자 전용 API ---
 app.post('/api/admin/coupons', async (req, res) => {
-    const { name, type, value, target_category, expires_at, min_order_amount, targetUserId } = req.body;
+    const { name, type, value, target_category, targetUserId, min_order_amount, expires_at } = req.body;
 
     try {
         const insertData = {
