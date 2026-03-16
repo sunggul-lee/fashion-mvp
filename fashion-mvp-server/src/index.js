@@ -537,9 +537,13 @@ app.get('/api/banners', async (req, res) => {
     }
 });
 
-app.get('/api/coupons/available', async (req, res) => {
+app.get('/api/coupons/available', authenticateUser, async (req, res) => {
     try {
-        const userId = req.user.id; // 인증 미들웨어를 통해 유저 ID 확보
+        const userId = req.user?.id; // 인증 미들웨어를 통해 유저 ID 확보
+
+        if (!userId) {
+            return res.status(200).json({ success: true, coupons; [] });
+        }
 
         // 유저에게 직접 할당된 쿠폰 조회 (user_coupons 테이블 기준)
         const { data: userCoupons, error: uError } = await supabaseAdmin
