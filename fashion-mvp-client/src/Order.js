@@ -9,9 +9,6 @@ function Order({ session }) {
     const navigate = useNavigate();
     const location = useLocation(); // 장바구니에서 보낸 데이터 받기 위함
 
-    // cart.js에서 navigate 디버깅 (state)
-    console.log("전달받은 데이터:", location.state);
-
     // 장바구니에서 넘어온 쿠폰 및 최종 금액 정보 추출
     const selectedCoupon = location.state?.selectedCoupon || null;
     const finalPrice = location.state?.finalPrice || 0;
