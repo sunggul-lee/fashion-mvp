@@ -107,10 +107,13 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/popular-keywords', async (req, res) => {
 
     const cacheKey = "popular_keywords";
+
+    // 캐시 확인
     const cachedData = myCache.get(cacheKey);
     if (cachedData) return res.json(cachedData);
 
     try {
+        // DB 조회 (최근 7일)
         const { data, error } = await supabaseAdmin
             .from('search_logs')
             .select('keyword')
@@ -122,22 +125,29 @@ app.get('/api/popular-keywords', async (req, res) => {
         console.log("DB에서 가져온 원본 데이터 개수:", data?.length);
 
         if (!data || data.length === 0) {
+            // 데이터가 없어도 5분 정도는 캐시해서 DB 부하 방지
+            myCache.set(cacheKey, [], 300);
             return res.status(200).json([]);
         }
 
         const counts = data.reduce((acc, { keyword }) => {
-            acc[keyword] = (acc[keyword] || 0) + 1;
+            const trimmed = keyword?.trim();
+            // 의미 없는 짧은 단어나 공백 제외
+            if (trimmed && trimmed.length >=2) {
+                acc[keyword] = (acc[keyword] || 0) + 1;
+            }
             return acc;
         }, {});
 
+        // 정렬 및 상위 10개 키워드 추출
         const sortedKeywords = Object.entries(counts)
             .sort(([, a], [, b]) => b - a)
             .slice(0, 10)
             .map(([keyword]) => keyword);
 
-        console.log("최종 정렬된 키워드:", sortedKeywords)
+        // 캐시 저장 (1시간 동안 서버 메모리에 보관)
+        myCache.set(cacheKey, sortedKeywords, 3600);
 
-        myCache.set(cacheKey, sortedKeywords)
         res.status(200).json(sortedKeywords);
    
     } catch (err) {
